@@ -1,0 +1,319 @@
+:root {
+    /* Colors */
+    --color-bg: #0C0C10;
+    --color-surface: #15151C;
+    --color-surface-alt: #1E1E27;
+    --color-primary: #E3B574;
+    --color-primary-soft: #3A3020;
+    --color-accent: #5FB3C6;
+    --color-border-subtle: #2A2A34;
+    --color-border-strong: #F4D7A4;
+    --color-text-primary: #F5F5FA;
+    --color-text-secondary: #A8A8BA;
+    --color-text-muted: #6B6B82;
+    --color-text-on-primary: #120F06;
+    --color-success: #6AD3A1;
+    --color-warning: #FFCF70;
+    --color-error: #FF7B80;
+    --color-overlay: rgba(7, 7, 10, 0.72);
+    --color-sheen: color-mix(in srgb, var(--color-primary), transparent 85%);
+
+    /* Glass Colors (Derived or Explicit) */
+    --glass-heavy: rgba(5, 5, 5, 0.7);
+    --glass-atlas: rgba(15, 15, 15, 0.4);
+    --glass-card-start: rgba(20, 20, 20, 0.6);
+    --glass-card-end: rgba(10, 10, 10, 0.4);
+
+    --glass-border: var(--color-surface-200);
+
+    /* Surface Translucent (for Glass) */
+    --color-surface-50: rgba(255, 255, 255, 0.02);
+    --color-surface-100: rgba(255, 255, 255, 0.05);
+    --color-surface-200: rgba(255, 255, 255, 0.08);
+
+    /* Glass Effect Utilities */
+    --shadow-glass-card: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+    --highlight-glass-card: rgba(255, 255, 255, 0.1);
+
+    /* Typography */
+    --font-family-display: "Cormorant Garamond", serif;
+    --font-family-body: "Inter", system-ui, sans-serif;
+
+    --font-size-2xl: 32px;
+    --font-size-xl: 24px;
+    --font-size-lg: 20px;
+    --font-size-md: 16px;
+    --font-size-sm: 14px;
+    --font-size-xs: 12px;
+
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-tight: 1.2;
+    --line-normal: 1.4;
+    --line-loose: 1.6;
+
+    /* Spacing */
+    --space-0: 0px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Radius */
+    --radius-none: 0px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-pill: 999px;
+
+    /* Shadow */
+    --shadow-none: none;
+    --shadow-sm: 0 4px 8px rgba(0, 0, 0, 0.22);
+    --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.38);
+
+    /* Motion */
+    --motion-fast: 120ms;
+    --motion-normal: 200ms;
+    --motion-slow: 280ms;
+    --easing-standard: cubic-bezier(0.2, 0.0, 0.2, 1);
+    --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
+    --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
+
+    /* Z-index */
+    --z-base: 0;
+    --z-raised: 10;
+    --z-overlay: 100;
+    --z-toast: 200;
+}
+
+.light {
+    /* Backgrounds: Invert to Light */
+    --color-bg: #F0F2F5;
+    /* Darker Cool Gray for Better Contrast */
+    --color-surface: #FFFFFF;
+    --color-surface-alt: #F8FAFC;
+
+    /* Text: Invert to Dark */
+    --color-text-primary: #0F172A;
+    --color-text-secondary: #334155;
+    --color-text-muted: #64748B;
+    --color-text-on-primary: #FFFFFF;
+
+    /* Borders: Crisp */
+    --color-border-subtle: #CBD5E1;
+    /* Stronger border for glass definition */
+    --color-border-strong: #D4AF37;
+
+    /* Glass: Distinct White Glass */
+    --glass-heavy: rgba(255, 255, 255, 0.75);
+    /* More opaque for sidebar */
+    --glass-atlas: rgba(255, 255, 255, 0.6);
+    --glass-card-start: rgba(255, 255, 255, 0.9);
+    --glass-card-end: rgba(255, 255, 255, 0.5);
+
+    /* Adaptive Glass Border */
+    --glass-border: rgba(0, 0, 0, 0.08);
+
+    /* Surface Translucent */
+    --color-surface-50: rgba(255, 255, 255, 0.5);
+    --color-surface-100: rgba(255, 255, 255, 0.8);
+    --color-surface-200: rgba(255, 255, 255, 0.95);
+
+    /* Glass Effect Utilities */
+    --shadow-glass-card: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+    --highlight-glass-card: rgba(255, 255, 255, 1.0);
+
+    /* Brand Sheen */
+    --color-sheen: color-mix(in srgb, var(--color-primary), transparent 90%);
+}
+
+/* Themes */
+.theme-oceanic {
+    --color-primary: #0EA5E9;
+    /* Sky 500 */
+    --color-primary-soft: #0C4A6E;
+    /* Sky 900 */
+    --color-surface: #0F172A;
+    /* Slate 900 */
+    --color-surface-alt: #1E293B;
+    /* Slate 800 */
+    --color-bg: #020617;
+    /* Slate 950 */
+    --color-text-primary: #F0F9FF;
+    /* Sky 50 */
+
+    --glass-heavy: rgba(2, 6, 23, 0.8);
+    --glass-atlas: rgba(15, 23, 42, 0.6);
+    --glass-card-start: rgba(14, 165, 233, 0.1);
+    --glass-card-end: rgba(14, 165, 233, 0.05);
+}
+
+.theme-nature {
+    --color-primary: #10B981;
+    /* Emerald 500 */
+    --color-primary-soft: #064E3B;
+    /* Emerald 900 */
+    --color-surface: #0a1f13;
+    /* Darkened Emerald */
+    --color-surface-alt: #0d2618;
+    --color-bg: #020b06;
+    --color-text-primary: #ecfdf5;
+
+    --glass-heavy: rgba(2, 44, 34, 0.8);
+    --glass-atlas: rgba(6, 78, 59, 0.6);
+    --glass-card-start: rgba(16, 185, 129, 0.1);
+    --glass-card-end: rgba(16, 185, 129, 0.05);
+}
+
+.theme-crimson {
+    --color-primary: #F43F5E;
+    /* Rose 500 */
+    --color-primary-soft: #881337;
+    /* Rose 900 */
+    --color-surface: #1f050b;
+    /* Darkened Rose */
+    --color-surface-alt: #2e0811;
+    --color-bg: #0f0205;
+    --color-text-primary: #ffe4e6;
+
+    --glass-heavy: rgba(76, 5, 25, 0.8);
+    --glass-atlas: rgba(136, 19, 55, 0.6);
+    --glass-card-start: rgba(244, 63, 94, 0.1);
+    --glass-card-end: rgba(244, 63, 94, 0.05);
+}
+
+.theme-royal {
+    --color-primary: #8B5CF6;
+    /* Violet 500 */
+    --color-primary-soft: #4C1D95;
+    /* Violet 900 */
+    --color-surface: #110626;
+    /* Darkened Violet */
+    --color-surface-alt: #1a0938;
+    --color-bg: #05020d;
+    --color-text-primary: #ede9fe;
+
+    --glass-heavy: rgba(46, 16, 101, 0.8);
+    --glass-atlas: rgba(91, 33, 182, 0.6);
+    --glass-card-start: rgba(139, 92, 246, 0.1);
+    --glass-card-end: rgba(139, 92, 246, 0.05);
+}
+
+.theme-sunset {
+    --color-primary: #F97316;
+    /* Orange 500 */
+    --color-primary-soft: #7C2D12;
+    /* Orange 900 */
+    --color-surface: #1C0A00;
+    /* Darkened Orange */
+    --color-surface-alt: #2A1002;
+    --color-bg: #0C0400;
+    --color-text-primary: #FFF7ED;
+    /* Orange 50 */
+
+    --glass-heavy: rgba(67, 20, 7, 0.8);
+    --glass-atlas: rgba(124, 45, 18, 0.6);
+    --glass-card-start: rgba(249, 115, 22, 0.1);
+    --glass-card-end: rgba(249, 115, 22, 0.05);
+}
+
+.theme-aqua {
+    --color-primary: #06B6D4;
+    /* Cyan 500 */
+    --color-primary-soft: #164E63;
+    /* Cyan 900 */
+    --color-surface: #021217;
+    /* Darkened Cyan */
+    --color-surface-alt: #031D24;
+    --color-bg: #00080A;
+    --color-text-primary: #ECFEFF;
+    /* Cyan 50 */
+
+    --glass-heavy: rgba(8, 51, 68, 0.8);
+    --glass-atlas: rgba(22, 78, 99, 0.6);
+    --glass-card-start: rgba(6, 182, 212, 0.1);
+    --glass-card-end: rgba(6, 182, 212, 0.05);
+}
+
+.theme-neon {
+    --color-primary: #84CC16;
+    /* Lime 500 */
+    --color-primary-soft: #365314;
+    /* Lime 900 */
+    --color-surface: #0D1402;
+    /* Darkened Lime */
+    --color-surface-alt: #142103;
+    --color-bg: #050800;
+    --color-text-primary: #F7FEE7;
+    /* Lime 50 */
+
+    --glass-heavy: rgba(26, 46, 5, 0.8);
+    --glass-atlas: rgba(54, 83, 20, 0.6);
+    --glass-card-start: rgba(132, 204, 22, 0.1);
+    --glass-card-end: rgba(132, 204, 22, 0.05);
+}
+
+.theme-midnight {
+    --color-primary: #6366F1;
+    /* Indigo 500 */
+    --color-primary-soft: #312E81;
+    /* Indigo 900 */
+    --color-surface: #050517;
+    /* Darkened Indigo */
+    --color-surface-alt: #0a0a2e;
+    --color-bg: #02020a;
+    --color-text-primary: #e0e7ff;
+    /* Indigo 50 */
+
+    --glass-heavy: rgba(30, 27, 75, 0.8);
+    --glass-atlas: rgba(49, 46, 129, 0.6);
+    --glass-card-start: rgba(99, 102, 241, 0.1);
+    --glass-card-end: rgba(99, 102, 241, 0.05);
+}
+
+.theme-flamingo {
+    --color-primary: #EC4899;
+    /* Pink 500 */
+    --color-primary-soft: #831843;
+    /* Pink 900 */
+    --color-surface: #1f020f;
+    /* Darkened Pink */
+    --color-surface-alt: #2e0517;
+    --color-bg: #0f0007;
+    --color-text-primary: #fce7f3;
+    /* Pink 50 */
+
+    --glass-heavy: rgba(80, 7, 36, 0.8);
+    --glass-atlas: rgba(131, 24, 67, 0.6);
+    --glass-card-start: rgba(236, 72, 153, 0.1);
+    --glass-card-end: rgba(236, 72, 153, 0.05);
+}
+
+.theme-solar {
+    --color-primary: #EAB308;
+    /* Yellow 500 */
+    --color-primary-soft: #713F12;
+    /* Yellow 900 */
+    --color-surface: #1a1202;
+    /* Darkened Yellow */
+    --color-surface-alt: #2e1d03;
+    --color-bg: #0d0600;
+    --color-text-primary: #fefce8;
+    /* Yellow 50 */
+
+    --glass-heavy: rgba(66, 32, 6, 0.8);
+    --glass-atlas: rgba(113, 63, 18, 0.6);
+    --glass-card-start: rgba(234, 179, 8, 0.1);
+    --glass-card-end: rgba(234, 179, 8, 0.05);
+}
