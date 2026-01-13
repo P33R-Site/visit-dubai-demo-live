@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 type AuthMode = 'login' | 'signup' | 'forgot' | 'reset';
 
 export const LoginModal: React.FC = () => {
-    const { showLoginModal, setShowLoginModal, setView } = useVal8();
+    const { showLoginModal, setShowLoginModal } = useVal8();
     const { login, signup, requestPasswordReset, resetPassword, isLoading, error, clearError } = useAuth();
 
     const [mode, setMode] = useState<AuthMode>('login');
@@ -84,9 +84,9 @@ export const LoginModal: React.FC = () => {
             } else {
                 await login(email, password);
             }
-            // Success - close modal and go to dashboard
+            // Success - close modal and stay on current view
             setShowLoginModal(false);
-            setView('dashboard');
+            // Note: Removed setView('dashboard') - keeping user in current view
         } catch {
             // Error is already set in AuthContext
         }

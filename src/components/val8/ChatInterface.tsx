@@ -165,6 +165,9 @@ export const ChatInterface: React.FC = () => {
     isTyping,
     connectChat,
     streamingText,
+    startNewTrip,
+    hasReachedFullContext,
+    activeTripPlan,
   } = useVal8();
 
   const [inputValue, setInputValue] = useState('');
@@ -269,6 +272,19 @@ export const ChatInterface: React.FC = () => {
             <p className="text-text-secondary dark:text-white/60 max-w-sm">
               Your AI concierge for luxury travel. Where would you like to go?
             </p>
+          </div>
+        )}
+
+        {/* Start New Trip button - appears when previous trip is complete */}
+        {chatHistory.length > 0 && (activeTripPlan?.status === 'booked' || hasReachedFullContext) && (
+          <div className="flex justify-center py-2">
+            <button
+              onClick={startNewTrip}
+              className="px-4 py-2 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 hover:border-primary/50 transition-all flex items-center gap-2"
+            >
+              <span>✨</span>
+              Start New Trip
+            </button>
           </div>
         )}
 

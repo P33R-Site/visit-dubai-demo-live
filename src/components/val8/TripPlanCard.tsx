@@ -8,6 +8,7 @@ interface TripPlanCardProps {
     tripPlan: TripPlan;
     onApprove?: () => void;
     isApproving?: boolean;
+    showBookButton?: boolean; // Only show booking button after AI approval
     className?: string;
 }
 
@@ -18,7 +19,7 @@ const formatPrice = (price: number | string | undefined): string => {
     return isNaN(num) ? '0' : num.toLocaleString();
 };
 
-export function TripPlanCard({ tripPlan, onApprove, isApproving = false, className = '' }: TripPlanCardProps) {
+export function TripPlanCard({ tripPlan, onApprove, isApproving = false, showBookButton = false, className = '' }: TripPlanCardProps) {
     return (
         <div className={`trip-plan-card ${className}`}>
             {/* Header with destination */}
@@ -121,6 +122,73 @@ export function TripPlanCard({ tripPlan, onApprove, isApproving = false, classNa
                         </div>
                     </div>
                 )}
+
+                {/* Events */}
+                {tripPlan.events && tripPlan.events.length > 0 && (
+                    <div className="trip-section">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                <Calendar className="w-4 h-4 text-purple-400" />
+                            </div>
+                            <span className="text-sm font-semibold text-text-primary dark:text-white">
+                                Events ({tripPlan.events.length})
+                            </span>
+                        </div>
+                        <div className="ml-9 space-y-2">
+                            {tripPlan.events.slice(0, 3).map((event, idx) => (
+                                <div key={idx} className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm text-text-secondary dark:text-white/70">{event.name}</p>
+                                        <p className="text-xs text-text-muted dark:text-white/40">
+                                            {event.date}{event.time && ` • ${event.time}`}
+                                        </p>
+                                        {event.rsvp_required && (
+                                            <span className="text-[10px] text-primary/80 font-medium">RSVP'd ✓</span>
+                                        )}
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">${formatPrice(event.price)}</span>
+                                </div>
+                            ))}
+                            {tripPlan.events.length > 3 && (
+                                <p className="text-xs text-text-muted dark:text-white/40">
+                                    +{tripPlan.events.length - 3} more events
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Attractions */}
+                {tripPlan.attractions && tripPlan.attractions.length > 0 && (
+                    <div className="trip-section">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                                <Star className="w-4 h-4 text-orange-400" />
+                            </div>
+                            <span className="text-sm font-semibold text-text-primary dark:text-white">
+                                Attractions ({tripPlan.attractions.length})
+                            </span>
+                        </div>
+                        <div className="ml-9 space-y-2">
+                            {tripPlan.attractions.slice(0, 3).map((attraction, idx) => (
+                                <div key={idx} className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm text-text-secondary dark:text-white/70">{attraction.name}</p>
+                                        <p className="text-xs text-text-muted dark:text-white/40">
+                                            {attraction.location}
+                                        </p>
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">${formatPrice(attraction.price)}</span>
+                                </div>
+                            ))}
+                            {tripPlan.attractions.length > 3 && (
+                                <p className="text-xs text-text-muted dark:text-white/40">
+                                    +{tripPlan.attractions.length - 3} more attractions
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Footer with total and action */}
@@ -135,8 +203,8 @@ export function TripPlanCard({ tripPlan, onApprove, isApproving = false, classNa
                     </div>
                     <div className="flex items-center gap-1">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${tripPlan.status === 'booked' || tripPlan.status === 'confirmed'
-                                ? 'bg-success/20 text-success'
-                                : 'bg-warning/20 text-warning'
+                            ? 'bg-success/20 text-success'
+                            : 'bg-warning/20 text-warning'
                             }`}>
                             {tripPlan.status || 'pending'}
                         </span>
@@ -155,8 +223,8 @@ export function TripPlanCard({ tripPlan, onApprove, isApproving = false, classNa
                         </p>
                     </div>
 
-                    {/* Approve Button */}
-                    {tripPlan.status === 'pending' && onApprove && (
+                    {/* Approve Button - only show when AI has approved and status is pending */}
+                    {showBookButton && tripPlan.status === 'pending' && onApprove && (
                         <button
                             onClick={onApprove}
                             disabled={isApproving}

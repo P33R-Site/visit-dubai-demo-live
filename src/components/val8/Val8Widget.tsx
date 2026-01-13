@@ -21,7 +21,22 @@ import { getSessionId } from '@/lib/session';
 
 // Trip Plan Panel Component - shows on desktop only in chat view
 const TripPlanPanel: React.FC = () => {
-    const { activeTripPlan, sendMessage, planItems } = useVal8();
+    const {
+        activeTripPlan,
+        sendMessage,
+        planItems,
+        hasReachedFullContext,
+        chatHistory,
+        pendingTripPlan,
+        hasPendingTrip,
+        confirmPendingTrip,
+        declinePendingTrip,
+        isTripApprovedByAI,
+    } = useVal8();
+
+    // Only show trip plan if user has started a conversation
+    // This prevents showing stale trip plan data from previous sessions
+    const hasActiveConversation = chatHistory.length > 0;
     const [isApproving, setIsApproving] = useState(false);
 
     const handleApproveTrip = async () => {
@@ -46,31 +61,123 @@ const TripPlanPanel: React.FC = () => {
         }
     };
 
+    // Categorize plan items by type for organized display
+    const categorizedItems = React.useMemo(() => {
+        const categories: Record<string, typeof planItems> = {
+            weather: [],
+            flight: [],
+            hotel: [],
+            experience: [],
+            event: [],
+            attraction: [],
+            transport: [],
+            other: [],
+        };
+
+        planItems.forEach(item => {
+            const type = item.type.toLowerCase();
+            if (categories[type]) {
+                categories[type].push(item);
+            } else {
+                categories.other.push(item);
+            }
+        });
+
+        return categories;
+    }, [planItems]);
+
+    // Section labels for display
+    const sectionLabels: Record<string, string> = {
+        weather: '🌤️ Weather',
+        flight: '✈️ Flights',
+        hotel: '🏨 Accommodation',
+        experience: '✨ Experiences',
+        event: '📅 Events',
+        attraction: '🏛️ Attractions',
+        transport: '🚗 Transport',
+        other: '📋 Other',
+    };
+
+    // Display order for sections
+    const displayOrder = ['weather', 'flight', 'hotel', 'experience', 'event', 'attraction', 'transport', 'other'];
+
     return (
         <div className="hidden md:flex flex-col w-[350px] border-l border-border-subtle dark:border-white/10 bg-surface-alt/50 dark:bg-white/5 h-full">
             <div className="px-4 py-3 border-b border-border-subtle dark:border-white/10 flex items-center gap-2">
                 <Map className="w-4 h-4 text-primary" />
                 <h3 className="text-sm font-semibold text-text-primary dark:text-white">Trip Plan</h3>
+                {hasReachedFullContext && (
+                    <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                        Full Context
+                    </span>
+                )}
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-                {/* Incremental Plan Items */}
-                {planItems.length > 0 && (
-                    <div className="mb-4 space-y-3">
-                        <p className="text-xs text-text-muted dark:text-white/40 uppercase tracking-wider">Building your plan...</p>
-                        {planItems.map((item, idx) => (
-                            <PlanItemCard key={`${item.type}-${idx}`} item={item} className="text-sm" />
-                        ))}
+                {/* Pending Trip Confirmation - show when there's a previous trip to restore */}
+                {hasPendingTrip && pendingTripPlan && (
+                    <div className="mb-4 space-y-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-lg">📋</span>
+                                <p className="text-sm font-semibold text-text-primary dark:text-white">
+                                    Previous Trip Found
+                                </p>
+                            </div>
+                            <p className="text-xs text-text-secondary dark:text-white/60 mb-3">
+                                You have a pending trip to <span className="font-medium text-primary">{pendingTripPlan.destination}</span> from a previous session.
+                            </p>
+                            <div className="text-xs text-text-muted dark:text-white/40 mb-4 space-y-1">
+                                <p>📅 {pendingTripPlan.start_date} - {pendingTripPlan.end_date}</p>
+                                <p>💰 ${pendingTripPlan.total_price?.toLocaleString() || 0} {pendingTripPlan.currency || 'USD'}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={confirmPendingTrip}
+                                    className="flex-1 px-3 py-2 bg-primary text-black text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                                >
+                                    Continue Trip
+                                </button>
+                                <button
+                                    onClick={declinePendingTrip}
+                                    className="flex-1 px-3 py-2 bg-white/10 text-text-secondary dark:text-white/60 text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
+                                >
+                                    Start Fresh
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
-                {/* Full Trip Plan Card */}
-                {activeTripPlan ? (
+                {/* Categorized Plan Items - only show if there's an active conversation */}
+                {hasActiveConversation && planItems.length > 0 && !hasPendingTrip && (
+                    <div className="mb-4 space-y-4">
+                        <p className="text-xs text-text-muted dark:text-white/40 uppercase tracking-wider">Building your plan...</p>
+                        {displayOrder.map(type => {
+                            const items = categorizedItems[type];
+                            if (!items || items.length === 0) return null;
+                            return (
+                                <div key={type} className="space-y-2">
+                                    <p className="text-xs font-semibold text-text-secondary dark:text-white/60 uppercase tracking-wider">
+                                        {sectionLabels[type]}
+                                    </p>
+                                    {items.map((item, idx) => (
+                                        <PlanItemCard key={`${item.type}-${idx}`} item={item} className="text-sm" />
+                                    ))}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Full Trip Plan Card - only show if there's an active trip plan (confirmed or newly created) */}
+                {activeTripPlan && !hasPendingTrip ? (
                     <TripPlanCard
                         tripPlan={activeTripPlan}
                         onApprove={handleApproveTrip}
                         isApproving={isApproving}
+                        showBookButton={isTripApprovedByAI}
                     />
-                ) : planItems.length === 0 ? (
+                ) : !hasPendingTrip && (!hasActiveConversation || planItems.length === 0) ? (
                     <div className="flex flex-col items-center justify-center h-full text-center py-8">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                             <Map className="w-6 h-6 text-primary/50" />
@@ -228,12 +335,14 @@ const Val8WidgetContent: React.FC = () => {
                                         <User className="w-4 h-4" />
                                     )}
                                 </button>
+                                {/* Fullscreen toggle - commented out for now, may need in future
                                 <button
                                     onClick={() => setView(view === 'chat' ? 'dashboard' : 'chat')}
                                     className="w-8 h-8 rounded-full bg-surface-alt/50 dark:bg-surface-100 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white hover:bg-surface-alt dark:hover:bg-surface-200 transition-colors"
                                 >
                                     {view === 'chat' ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
                                 </button>
+                                */}
                                 <button
                                     onClick={handleClose}
                                     className="w-8 h-8 rounded-full bg-surface-alt/50 dark:bg-surface-100 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white hover:bg-surface-alt dark:hover:bg-surface-200 transition-colors"

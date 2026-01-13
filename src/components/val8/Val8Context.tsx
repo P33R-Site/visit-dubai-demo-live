@@ -10,6 +10,9 @@ import { getSessionId } from '@/lib/session';
 // Types for the context
 export type UserIntent = 'planning' | 'browsing' | 'booking' | null;
 
+// Trip UI mode - tracks the current state of trip planning UI
+export type TripUIMode = 'idle' | 'planning' | 'building' | 'ready' | 'reviewing' | 'booked';
+
 export interface TripContext {
   destination?: string;
   dates?: string;
@@ -64,6 +67,10 @@ interface Val8ContextType {
   setIsExpanded: (expanded: boolean) => void;
   userIntent: UserIntent;
   setUserIntent: (intent: UserIntent) => void;
+  // Trip UI mode tracking
+  tripUIMode: TripUIMode;
+  setTripUIMode: (mode: TripUIMode) => void;
+  hasReachedFullContext: boolean;
   tripContext: TripContext;
   updateTripContext: (context: Partial<TripContext>) => void;
   chatHistory: ChatMessage[];
@@ -102,6 +109,19 @@ interface Val8ContextType {
   planItems: TripPlanItem[]; // Incremental plan items
   clearPlanItems: () => void;
 
+  // Pending trip plan from previous session
+  pendingTripPlan: TripPlan | null;
+  hasPendingTrip: boolean;
+  confirmPendingTrip: () => void;
+  declinePendingTrip: () => void;
+
+  // AI approval tracking - only show booking flow after AI confirms
+  isTripApprovedByAI: boolean;
+
+  // Session lifecycle methods
+  startNewTrip: () => void;
+  clearCurrentPlan: () => void;
+
   // Legacy demo mode properties (for backward compatibility)
   isDemoMode: boolean;
   setIsDemoMode: (mode: boolean) => void;
@@ -137,11 +157,25 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
   const [activeTripPlan, setActiveTripPlan] = useState<TripPlan | null>(null);
   const [currentSuggestion, setCurrentSuggestion] = useState<Suggestion | null>(null);
 
+  // Pending trip plan from previous session - needs user confirmation to show
+  const [pendingTripPlan, setPendingTripPlan] = useState<TripPlan | null>(null);
+  const [tripPlanConfirmed, setTripPlanConfirmed] = useState(false);
+
+  // AI approval tracking - true when AI confirms the trip is ready to book
+  const [isTripApprovedByAI, setIsTripApprovedByAI] = useState(false);
+
   // Streaming response accumulator
   const [streamingText, setStreamingText] = useState('');
 
   // Incremental plan items from WebSocket
   const [planItems, setPlanItems] = useState<TripPlanItem[]>([]);
+
+  // Trip UI mode tracking - prevents state downgrades
+  const [tripUIMode, setTripUIModeState] = useState<TripUIMode>('idle');
+  const [hasReachedFullContext, setHasReachedFullContext] = useState(false);
+
+  // Track if we were in conversation before login (to preserve UI state)
+  const [wasInConversationBeforeLogin, setWasInConversationBeforeLogin] = useState(false);
 
   // Map AuthContext user to Val8 UserProfile
   const user: UserProfile | null = authUser ? {
@@ -196,6 +230,12 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
     setChatHistory(prev => [...prev, aiMessage]);
     setStreamingText('');
     setIsLoading(false);
+
+    // Check if the AI has approved the trip (summary_ready state means ready for booking)
+    if (response.state === 'summary_ready') {
+      console.log('[Val8Context] Trip approved by AI - ready for booking');
+      setIsTripApprovedByAI(true);
+    }
   }, []);
 
   const handleTripPlan = useCallback((tripPlan: TripPlan) => {
@@ -230,6 +270,17 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
       console.log('[Val8Context] Adding new plan item:', item.type);
       return [...prev, item];
     });
+
+    // Update trip UI mode when building plan items
+    setTripUIModeState(prev => {
+      if (prev === 'idle' || prev === 'planning') return 'building';
+      return prev;
+    });
+
+    // Mark that we've reached full context when we have weather + hotel or flight
+    if (item.type === 'weather' || item.type === 'experience' || item.type === 'event') {
+      setHasReachedFullContext(true);
+    }
   }, []);
 
   const handleTripPlanReady = useCallback(async (data: { trip_plan_id: string; status: string; destination: string; total_price: number }) => {
@@ -241,8 +292,28 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
       const tripPlan = await getTrip(data.trip_plan_id, sessionId || undefined);
       console.log('[Val8Context] Fetched trip plan:', tripPlan);
 
-      // Set the active trip plan
-      setActiveTripPlan(tripPlan);
+      // Check if this is from a previous session (no meaningful conversation yet)
+      // We use a ref or check if the trip plan was already confirmed this session
+      setChatHistory(prevChatHistory => {
+        const userMessages = prevChatHistory.filter(m => m.sender === 'user');
+        const hasMeaningfulConversation = userMessages.length >= 2 ||
+          (userMessages.length === 1 && userMessages[0].text.toLowerCase() !== 'hi' &&
+            userMessages[0].text.toLowerCase() !== 'hello' &&
+            userMessages[0].text.length > 10);
+
+        if (hasMeaningfulConversation) {
+          // New trip created during active planning - set as active
+          console.log('[Val8Context] Setting as active trip plan (active conversation)');
+          setActiveTripPlan(tripPlan);
+          setTripPlanConfirmed(true);
+        } else {
+          // Trip from previous session - store as pending for user confirmation
+          console.log('[Val8Context] Setting as pending trip plan (no active conversation)');
+          setPendingTripPlan(tripPlan);
+        }
+
+        return prevChatHistory; // Return unchanged
+      });
 
       // Clear incremental plan items since we now have the full plan
       setPlanItems([]);
@@ -250,7 +321,18 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
       // Note: We don't add a chat message here because handleResponse already
       // adds the AI's text response to chat. This handler only updates the trip plan state.
     } catch (error) {
-      console.error('[Val8Context] Error fetching trip plan:', error);
+      // Handle access denied errors gracefully - this can happen when:
+      // 1. Session mismatch between frontend and backend
+      // 2. Trip belongs to a different user
+      // 3. Trip has been deleted or expired
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Access denied')) {
+        console.warn('[Val8Context] Access denied to trip - ignoring stale trip reference');
+        // Clear any pending trip plan since we can't access it
+        setPendingTripPlan(null);
+      } else {
+        console.error('[Val8Context] Error fetching trip plan:', error);
+      }
     }
   }, []);
 
@@ -258,7 +340,13 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
     console.error('WebSocket error:', error);
     setIsLoading(false);
 
-    // Add error message to chat
+    // Don't show "Not connected" errors in chat - these are usually temporary during reconnection
+    if (error.includes('Not connected')) {
+      console.log('[Val8Context] Ignoring temporary connection error');
+      return;
+    }
+
+    // Add error message to chat for other errors
     const errorMessage: ChatMessage = {
       id: Math.random().toString(36).substr(2, 9),
       sender: 'val8',
@@ -308,6 +396,13 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
     }
   }, [isExpanded, isConnected, disconnectChat]);
 
+  // Track when trip becomes approved by AI (status changes to booked/confirmed)
+  useEffect(() => {
+    if (activeTripPlan?.status === 'booked' || activeTripPlan?.status === 'confirmed') {
+      setIsTripApprovedByAI(true);
+    }
+  }, [activeTripPlan?.status]);
+
   const addTrip = (trip: Trip) => {
     setTrips(prev => [trip, ...prev]);
   };
@@ -332,6 +427,84 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
     setStreamingText('');
   };
 
+  // Set trip UI mode with guards to prevent invalid transitions
+  const setTripUIMode = useCallback((mode: TripUIMode) => {
+    setTripUIModeState(prev => {
+      // Prevent downgrade once we've reached full context (unless explicitly resetting to idle)
+      if (hasReachedFullContext && mode !== 'idle') {
+        const modeOrder: TripUIMode[] = ['idle', 'planning', 'building', 'ready', 'reviewing', 'booked'];
+        const currentIndex = modeOrder.indexOf(prev);
+        const newIndex = modeOrder.indexOf(mode);
+        // Only allow forward progression
+        if (newIndex < currentIndex) {
+          console.log('[Val8Context] Prevented UI mode downgrade from', prev, 'to', mode);
+          return prev;
+        }
+      }
+      return mode;
+    });
+  }, [hasReachedFullContext]);
+
+  // Session lifecycle: Start a completely new trip
+  const startNewTrip = useCallback(() => {
+    console.log('[Val8Context] Starting new trip - resetting all state');
+    setChatHistory([]);
+    setActiveTripPlan(null);
+    setPendingTripPlan(null);
+    setTripPlanConfirmed(false);
+    setIsTripApprovedByAI(false);
+    setCurrentSuggestion(null);
+    setStreamingText('');
+    setPlanItems([]);
+    setTripUIModeState('idle');
+    setHasReachedFullContext(false);
+    setBookingState('idle');
+    setSelectedHotel(null);
+    setTripContext({});
+    setUserIntent(null);
+    // Reconnect WebSocket to get fresh session - use longer delay to ensure clean disconnect
+    disconnectChat();
+    setTimeout(() => connectChat(), 300);
+  }, [disconnectChat, connectChat]);
+
+  // Session lifecycle: Clear current plan but keep conversation context
+  const clearCurrentPlan = useCallback(() => {
+    console.log('[Val8Context] Clearing current plan');
+    setActiveTripPlan(null);
+    setPendingTripPlan(null);
+    setPlanItems([]);
+    setTripUIModeState('planning');
+    setBookingState('idle');
+    setSelectedHotel(null);
+    setTripPlanConfirmed(false);
+    setIsTripApprovedByAI(false);
+    // Keep hasReachedFullContext since we're continuing conversation
+  }, []);
+
+  // Confirm pending trip from previous session - move it to active
+  const confirmPendingTrip = useCallback(() => {
+    console.log('[Val8Context] Confirming pending trip');
+    if (pendingTripPlan) {
+      setActiveTripPlan(pendingTripPlan);
+      setPendingTripPlan(null);
+      setTripPlanConfirmed(true);
+      setHasReachedFullContext(true);
+      // Since user is explicitly confirming this trip, allow booking
+      setIsTripApprovedByAI(true);
+    }
+  }, [pendingTripPlan]);
+
+  // Decline pending trip from previous session - clear it and start fresh
+  const declinePendingTrip = useCallback(() => {
+    console.log('[Val8Context] Declining pending trip');
+    setPendingTripPlan(null);
+    setActiveTripPlan(null);
+    setTripPlanConfirmed(false);
+    setIsTripApprovedByAI(false);
+    setPlanItems([]);
+    setTripUIModeState('idle');
+  }, []);
+
   const handleWidgetAction = (action: string) => {
     setActiveAction(action);
     setView('chat');
@@ -352,10 +525,21 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
       type: 'text',
     });
 
-    // Send via WebSocket
-    wsSendMessage(message);
-    setIsLoading(true);
-  }, [wsSendMessage]);
+    // Check if connected, if not try to connect first
+    if (!isConnected) {
+      console.log('[Val8Context] Not connected, attempting to connect before sending...');
+      connectChat();
+      // Wait a bit for connection then try to send
+      setTimeout(() => {
+        wsSendMessage(message);
+        setIsLoading(true);
+      }, 500);
+    } else {
+      // Send via WebSocket
+      wsSendMessage(message);
+      setIsLoading(true);
+    }
+  }, [wsSendMessage, isConnected, connectChat]);
 
   return (
     <Val8Context.Provider
@@ -399,6 +583,20 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
         streamingText,
         planItems,
         clearPlanItems: () => setPlanItems([]),
+        // Pending trip plan from previous session
+        pendingTripPlan,
+        hasPendingTrip: pendingTripPlan !== null && !tripPlanConfirmed,
+        confirmPendingTrip,
+        declinePendingTrip,
+        // AI approval tracking
+        isTripApprovedByAI,
+        // Trip UI mode tracking
+        tripUIMode,
+        setTripUIMode,
+        hasReachedFullContext,
+        // Session lifecycle
+        startNewTrip,
+        clearCurrentPlan,
         // Legacy demo mode (backward compatibility)
         isDemoMode,
         setIsDemoMode,
