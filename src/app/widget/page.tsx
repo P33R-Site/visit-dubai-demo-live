@@ -419,7 +419,7 @@ export default function WidgetPage() {
     return (
         <div className={`h-screen w-screen p-2 bg-transparent ${theme}`}>
             <AuthProvider>
-                <Val8Provider initialExpanded={true}>
+                <Val8Provider initialExpanded={true} inputPlaceholder={branding.inputPlaceholder}>
                     <WidgetContent />
                 </Val8Provider>
             </AuthProvider>

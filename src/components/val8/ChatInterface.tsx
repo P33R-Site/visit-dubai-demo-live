@@ -300,6 +300,7 @@ export const ChatInterface: React.FC = () => {
     activeTripPlan,
     currentSuggestion,
     clearCurrentSuggestion,
+    inputPlaceholder,
   } = useVal8();
 
   const [inputValue, setInputValue] = useState('');
@@ -539,7 +540,7 @@ export const ChatInterface: React.FC = () => {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type a message or use voice..."
+            placeholder={inputPlaceholder}
             disabled={!isConnected}
             className="w-full px-4 py-3 pr-24 rounded-xl bg-surface dark:bg-white/5 border border-border-subtle dark:border-white/10 text-text-primary dark:text-white placeholder-text-muted dark:placeholder-white/40 text-sm focus:outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
           />
