@@ -178,8 +178,9 @@ const TripPlanPanel: React.FC = () => {
     );
 };
 
+
 // Widget Header
-const WidgetHeader: React.FC<{ onClose: () => void; widgetTitle?: string }> = ({ onClose, widgetTitle }) => {
+const WidgetHeader: React.FC<{ onClose: () => void; widgetTitle?: string; subtitle?: string }> = ({ onClose, widgetTitle, subtitle }) => {
     const { setView, view, startNewTrip, chatHistory, setShowLoginModal } = useVal8();
     const { user: authUser, logout: authLogout } = useAuth();
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -205,7 +206,7 @@ const WidgetHeader: React.FC<{ onClose: () => void; widgetTitle?: string }> = ({
                     </div>
                     <div>
                         <h1 className="text-text-primary dark:text-white font-serif text-base">{widgetTitle || 'Val8'}</h1>
-                        <p className="text-[9px] uppercase tracking-widest text-primary">AI Concierge</p>
+                        <p className="text-[9px] uppercase tracking-widest text-primary">{subtitle || 'AI Concierge'}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -248,12 +249,15 @@ const WidgetContent: React.FC = () => {
     const { view, chatHistory, bookingState, setShowExitModal } = useVal8();
     const [showLoader, setShowLoader] = useState(true);
     const [widgetTitle, setWidgetTitle] = useState<string>('Val8');
+    const [subtitle, setSubtitle] = useState<string>('AI Concierge');
 
     useEffect(() => {
         // Read widgetTitle from URL params
         const urlParams = new URLSearchParams(window.location.search);
         const title = urlParams.get('widgetTitle');
+        const sub = urlParams.get('subtitle');
         if (title) setWidgetTitle(decodeURIComponent(title));
+        if (sub) setSubtitle(decodeURIComponent(sub));
     }, []);
 
     useEffect(() => {
@@ -271,7 +275,7 @@ const WidgetContent: React.FC = () => {
 
     return (
         <div className="h-full w-full flex flex-col bg-surface dark:bg-[#050505] overflow-hidden rounded-[20px] shadow-2xl border border-white/10">
-            <WidgetHeader onClose={handleClose} widgetTitle={widgetTitle} />
+            <WidgetHeader onClose={handleClose} widgetTitle={widgetTitle} subtitle={subtitle} />
 
             <div className="flex-1 flex overflow-hidden">
                 <AnimatePresence mode="wait">
