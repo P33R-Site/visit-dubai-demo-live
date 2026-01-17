@@ -94,7 +94,15 @@ function SuggestionCard({ suggestion, onAccept, onReject }: { suggestion: Sugges
     onReject();
   };
 
-  const item = suggestion.item;
+  const item = suggestion.item as {
+    name?: string;
+    description?: string;
+    date?: string;
+    time?: string;
+    location?: string;
+    price?: number | string;
+    rsvp_required?: boolean;
+  };
   const formatPrice = (price: any) => {
     if (!price || price === 0) return null;
     const num = typeof price === 'string' ? parseFloat(price) : price;
@@ -123,7 +131,7 @@ function SuggestionCard({ suggestion, onAccept, onReject }: { suggestion: Sugges
 
         {/* Suggestion Details */}
         <div className="bg-white/5 dark:bg-black/20 rounded-lg p-4 mb-4 space-y-2">
-          <p className="text-text-primary dark:text-white font-semibold">{item.name}</p>
+          <p className="text-text-primary dark:text-white font-semibold">{item.name || ''}</p>
           {item.description && (
             <p className="text-sm text-text-secondary dark:text-white/70">{item.description}</p>
           )}
