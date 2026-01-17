@@ -179,7 +179,7 @@ const TripPlanPanel: React.FC = () => {
 };
 
 // Widget Header
-const WidgetHeader: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+const WidgetHeader: React.FC<{ onClose: () => void; widgetTitle?: string }> = ({ onClose, widgetTitle }) => {
     const { setView, view, startNewTrip, chatHistory, setShowLoginModal } = useVal8();
     const { user: authUser, logout: authLogout } = useAuth();
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -201,10 +201,10 @@ const WidgetHeader: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <div className="h-14 bg-surface dark:bg-[#0a0a0a] border-b border-border-subtle dark:border-white/10 flex items-center justify-between px-4 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary">
-                        <span className="font-serif font-bold text-surface text-lg">V</span>
+                        <span className="font-serif font-bold text-surface text-lg">{(widgetTitle || 'Val8').charAt(0)}</span>
                     </div>
                     <div>
-                        <h1 className="text-text-primary dark:text-white font-serif text-base">Val8</h1>
+                        <h1 className="text-text-primary dark:text-white font-serif text-base">{widgetTitle || 'Val8'}</h1>
                         <p className="text-[9px] uppercase tracking-widest text-primary">AI Concierge</p>
                     </div>
                 </div>
@@ -247,6 +247,14 @@ const WidgetHeader: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 const WidgetContent: React.FC = () => {
     const { view, chatHistory, bookingState, setShowExitModal } = useVal8();
     const [showLoader, setShowLoader] = useState(true);
+    const [widgetTitle, setWidgetTitle] = useState<string>('Val8');
+
+    useEffect(() => {
+        // Read widgetTitle from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const title = urlParams.get('widgetTitle');
+        if (title) setWidgetTitle(decodeURIComponent(title));
+    }, []);
 
     useEffect(() => {
         const timer = setTimeout(() => setShowLoader(false), 1500);
@@ -263,7 +271,7 @@ const WidgetContent: React.FC = () => {
 
     return (
         <div className="h-full w-full flex flex-col bg-surface dark:bg-[#050505] overflow-hidden rounded-[20px] shadow-2xl border border-white/10">
-            <WidgetHeader onClose={handleClose} />
+            <WidgetHeader onClose={handleClose} widgetTitle={widgetTitle} />
 
             <div className="flex-1 flex overflow-hidden">
                 <AnimatePresence mode="wait">
