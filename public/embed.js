@@ -6,6 +6,16 @@
     const IFRAME_ID = 'val8-widget-iframe';
     const LAUNCHER_ID = 'val8-widget-launcher';
 
+    // Branding/Customization options (optional)
+    const BRANDING = {
+        primaryColor: config.primaryColor || null, // e.g., '#D4AF37' or 'rgb(212, 175, 55)'
+        accentColor: config.accentColor || null,   // Secondary accent color
+        fontFamily: config.fontFamily || null,     // e.g., 'Roboto, sans-serif'
+        borderRadius: config.borderRadius || null, // e.g., '16px' or '24px'
+        widgetTitle: config.widgetTitle || 'Val8', // Widget header title
+        launcherText: config.launcherText || 'Speak to Nora', // Launcher button text
+    };
+
     // Create Fonts (Inter and Playfair for the specific look)
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@700&display=swap';
@@ -43,7 +53,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background-color: #D4AF37; /* Primary */
+            background-color: ${BRANDING.primaryColor || '#D4AF37'}; /* Custom or default primary */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -137,9 +147,9 @@
     // HTML Structure matching Val8Widget.tsx:
     launcher.innerHTML = `
         <div class="icon-box" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            <img src="https://api.dicebear.com/7.x/personas/svg?seed=Nora&backgroundColor=b6e3f4&hair=long&hairColor=2c1b18&eyes=happy&mouth=smile&nose=smallRound&skinColor=f5cfa0" alt="Nora AI Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="https://api.dicebear.com/7.x/personas/svg?seed=Nora&backgroundColor=b6e3f4&hair=long&hairColor=2c1b18&eyes=happy&mouth=smile&nose=smallRound&skinColor=f5cfa0" alt="AI Avatar" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
-        <span class="text">Speak to Nora</span>
+        <span class="text">${BRANDING.launcherText}</span>
     `;
     document.body.appendChild(launcher);
 
@@ -197,10 +207,22 @@
     const parentTheme = detectTheme();
     applyTheme(parentTheme); // Apply initial theme to launcher
 
-    // Create Iframe with theme parameter
+    // Build widget URL with theme and branding parameters
+    function buildWidgetUrl(theme) {
+        const params = new URLSearchParams();
+        params.set('theme', theme);
+        if (BRANDING.primaryColor) params.set('primaryColor', BRANDING.primaryColor);
+        if (BRANDING.accentColor) params.set('accentColor', BRANDING.accentColor);
+        if (BRANDING.widgetTitle) params.set('widgetTitle', BRANDING.widgetTitle);
+        if (BRANDING.fontFamily) params.set('fontFamily', BRANDING.fontFamily);
+        if (BRANDING.borderRadius) params.set('borderRadius', BRANDING.borderRadius);
+        return `${WIDGET_URL}?${params.toString()}`;
+    }
+
+    // Create Iframe with theme and branding parameters
     const iframe = document.createElement('iframe');
     iframe.id = IFRAME_ID;
-    iframe.src = `${WIDGET_URL}?theme=${parentTheme}`;
+    iframe.src = buildWidgetUrl(parentTheme);
     iframe.allow = "microphone; autoplay";
     document.body.appendChild(iframe);
 

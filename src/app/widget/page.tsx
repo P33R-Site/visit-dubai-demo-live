@@ -309,17 +309,36 @@ const WidgetContent: React.FC = () => {
     );
 };
 
-// Main Page Export - with theme detection from parent website
+// Branding customization interface
+interface BrandingConfig {
+    primaryColor?: string;
+    accentColor?: string;
+    widgetTitle?: string;
+    fontFamily?: string;
+    borderRadius?: string;
+}
+
+// Main Page Export - with theme detection and branding customization
 export default function WidgetPage() {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+    const [branding, setBranding] = useState<BrandingConfig>({});
 
     useEffect(() => {
-        // Get theme from URL parameter
+        // Get theme and branding from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const urlTheme = urlParams.get('theme');
         if (urlTheme === 'light' || urlTheme === 'dark') {
             setTheme(urlTheme);
         }
+
+        // Read branding config from URL
+        const brandingConfig: BrandingConfig = {};
+        if (urlParams.get('primaryColor')) brandingConfig.primaryColor = decodeURIComponent(urlParams.get('primaryColor')!);
+        if (urlParams.get('accentColor')) brandingConfig.accentColor = decodeURIComponent(urlParams.get('accentColor')!);
+        if (urlParams.get('widgetTitle')) brandingConfig.widgetTitle = decodeURIComponent(urlParams.get('widgetTitle')!);
+        if (urlParams.get('fontFamily')) brandingConfig.fontFamily = decodeURIComponent(urlParams.get('fontFamily')!);
+        if (urlParams.get('borderRadius')) brandingConfig.borderRadius = decodeURIComponent(urlParams.get('borderRadius')!);
+        setBranding(brandingConfig);
 
         // Listen for theme changes from parent website
         const handleMessage = (event: MessageEvent) => {
@@ -335,11 +354,24 @@ export default function WidgetPage() {
         return () => window.removeEventListener('message', handleMessage);
     }, []);
 
-    // Apply theme class to html element
+    // Apply theme class and branding CSS variables
     useEffect(() => {
         document.documentElement.classList.remove('light', 'dark');
         document.documentElement.classList.add(theme);
-    }, [theme]);
+
+        // Apply branding CSS custom properties
+        const root = document.documentElement;
+        if (branding.primaryColor) {
+            root.style.setProperty('--color-primary', branding.primaryColor);
+            root.style.setProperty('--color-primary-soft', `${branding.primaryColor}33`); // 20% opacity
+        }
+        if (branding.accentColor) {
+            root.style.setProperty('--color-accent', branding.accentColor);
+        }
+        if (branding.fontFamily) {
+            root.style.setProperty('--font-family-body', branding.fontFamily);
+        }
+    }, [theme, branding]);
 
     return (
         <div className={`h-screen w-screen p-2 bg-transparent ${theme}`}>

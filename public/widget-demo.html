@@ -353,12 +353,66 @@
 &lt;script&gt;
   window.Val8Config = {
     <span class="comment">// Widget URL (use this for custom deployments)</span>
-    widgetUrl: '<span class="highlight">https://visit-dubai-demo-live.vercel.app/widget</span>'
+    widgetUrl: '<span class="highlight">https://visit-dubai-demo-live.vercel.app/widget</span>',
+    
+    <span class="comment">// 🎨 Branding - Match your website colors</span>
+    primaryColor: '<span class="highlight">#D4AF37</span>',    <span class="comment">// Main accent color (buttons, links)</span>
+    accentColor: '<span class="highlight">#7C3AED</span>',     <span class="comment">// Secondary accent color</span>
+    
+    <span class="comment">// 🔤 Typography</span>
+    fontFamily: '<span class="highlight">Roboto, sans-serif</span>', <span class="comment">// Custom font</span>
+    
+    <span class="comment">// 📐 Layout</span>
+    borderRadius: '<span class="highlight">16px</span>',       <span class="comment">// Widget corner radius</span>
+    
+    <span class="comment">// 📝 Labels</span>
+    widgetTitle: '<span class="highlight">Val8</span>',        <span class="comment">// Header title</span>
+    launcherText: '<span class="highlight">Speak to Nora</span>' <span class="comment">// Launcher button text</span>
   };
 &lt;/script&gt;
 
 <span class="comment">&lt;!-- Load the widget --&gt;</span>
 &lt;script src="<span class="highlight">https://visit-dubai-demo-live.vercel.app/embed.js</span>"&gt;&lt;/script&gt;</code></pre>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">Available Options</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0;">
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="text-align: left; padding: 10px 0; color: #D4AF37;">Option</th>
+                    <th style="text-align: left; padding: 10px 0; color: #D4AF37;">Type</th>
+                    <th style="text-align: left; padding: 10px 0; color: #D4AF37;">Description</th>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 8px 0;"><code>primaryColor</code></td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Main brand color for buttons, links, and
+                        accents</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 8px 0;"><code>accentColor</code></td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Secondary accent color</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 8px 0;"><code>fontFamily</code></td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Custom font family (CSS format)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 8px 0;"><code>borderRadius</code></td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Widget corner radius (e.g., "16px")</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 8px 0;"><code>widgetTitle</code></td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Widget header title text</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0;"><code>launcherText</code></td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
+                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Launcher button text</td>
+                </tr>
+            </table>
         </div>
 
         <!-- Theme Setup -->
@@ -368,7 +422,8 @@
 
             <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">Method 1: CSS Class (Recommended)</h3>
             <p>Add a <code>dark</code> or <code>light</code> class to your <code>&lt;html&gt;</code> or
-                <code>&lt;body&gt;</code> element:</p>
+                <code>&lt;body&gt;</code> element:
+            </p>
             <pre><code><span class="comment">&lt;!-- For dark theme --&gt;</span>
 <span class="highlight">&lt;html class="dark"&gt;</span>
 
