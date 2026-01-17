@@ -3,7 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "@/styles/tokens.css";
 import "./globals.css";
 import { Providers } from "@/components/ui/Providers";
-import { ThemeDebugger } from "@/components/ui/ThemeDebugger";
+// import { ThemeDebugger } from "@/components/ui/ThemeDebugger";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-family-body" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-family-display" });
@@ -26,7 +26,7 @@ export default function RootLayout({
             <body className={`${inter.variable} ${playfair.variable} bg-bg text-text-primary font-sans antialiased`} suppressHydrationWarning>
                 <Providers>
                     {children}
-                    <ThemeDebugger />
+                    {/* <ThemeDebugger /> */}
                 </Providers>
             </body>
         </html>

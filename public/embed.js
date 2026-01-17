@@ -2,7 +2,7 @@
     // Configuration - Can be overridden by setting window.Val8Config before loading this script
     const config = window.Val8Config || {};
     const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const WIDGET_URL = config.widgetUrl || (IS_DEV ? 'http://localhost:3000/widget' : 'https://your-domain.vercel.app/widget');
+    const WIDGET_URL = config.widgetUrl || (IS_DEV ? 'http://localhost:3000/widget' : 'https://visit-dubai-demo-live.vercel.app/widget');
     const IFRAME_ID = 'val8-widget-iframe';
     const LAUNCHER_ID = 'val8-widget-launcher';
 
@@ -66,30 +66,35 @@
             padding-right: 8px;
         }
         
-        /* Dark Mode Support (Optional - matches system preference) */
-        @media (prefers-color-scheme: dark) {
-            #${LAUNCHER_ID} {
-                background: #1a1a1a; /* Surface dark */
-                color: #ffffff;
-                border-color: rgba(255,255,255,0.1);
-            }
+        /* Dark Mode Support - applied via class */
+        #${LAUNCHER_ID}.dark-theme {
+            background: #1a1a1a; /* Surface dark */
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.1);
+        }
+        /* Light Mode */
+        #${LAUNCHER_ID}.light-theme {
+            background: #ffffff; /* Surface light */
+            color: #1a1a1a;
+            border-color: rgba(0,0,0,0.1);
         }
 
         #${IFRAME_ID} {
             position: fixed;
-            bottom: 100px;
+            bottom: 24px;
             right: 24px;
-            width: 400px;
+            width: 800px;
             height: 700px;
-            max-height: 80vh;
+            max-height: 85vh;
+            max-width: calc(100vw - 48px);
             border: none;
-            border-radius: 32px;
-            z-index: 999999;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* shadow-2xl */
+            border-radius: 24px;
+            z-index: 999998;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             opacity: 0;
             pointer-events: none;
             transform: translateY(20px) scale(0.95);
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); /* Ease-out quart-ish for premium feel */
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             transform-origin: bottom right;
         }
         #${IFRAME_ID}.open {
@@ -138,12 +143,75 @@
     `;
     document.body.appendChild(launcher);
 
-    // Create Iframe
+    // Detect parent website theme
+    function detectTheme() {
+        // Check for common theme indicators
+        const html = document.documentElement;
+        const body = document.body;
+
+        // Check for dark mode class on html or body
+        if (html.classList.contains('dark') || body.classList.contains('dark')) {
+            return 'dark';
+        }
+        if (html.classList.contains('light') || body.classList.contains('light')) {
+            return 'light';
+        }
+
+        // Check data-theme attribute
+        const dataTheme = html.getAttribute('data-theme') || body.getAttribute('data-theme');
+        if (dataTheme === 'dark' || dataTheme === 'light') {
+            return dataTheme;
+        }
+
+        // Check for color-scheme meta tag
+        const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
+        if (colorSchemeMeta) {
+            const content = colorSchemeMeta.getAttribute('content');
+            if (content && content.includes('dark')) return 'dark';
+            if (content && content.includes('light')) return 'light';
+        }
+
+        // Check background color luminance
+        const bgColor = window.getComputedStyle(body).backgroundColor;
+        const match = bgColor.match(/\d+/g);
+        if (match && match.length >= 3) {
+            const [r, g, b] = match.map(Number);
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return luminance < 0.5 ? 'dark' : 'light';
+        }
+
+        // Check system preference as fallback
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+        }
+
+        return 'light';
+    }
+
+    // Apply theme to launcher
+    function applyTheme(theme) {
+        launcher.classList.remove('dark-theme', 'light-theme');
+        launcher.classList.add(theme === 'dark' ? 'dark-theme' : 'light-theme');
+    }
+
+    const parentTheme = detectTheme();
+    applyTheme(parentTheme); // Apply initial theme to launcher
+
+    // Create Iframe with theme parameter
     const iframe = document.createElement('iframe');
     iframe.id = IFRAME_ID;
-    iframe.src = WIDGET_URL;
+    iframe.src = `${WIDGET_URL}?theme=${parentTheme}`;
     iframe.allow = "microphone; autoplay";
     document.body.appendChild(iframe);
+
+    // Listen for theme changes on parent website
+    const themeObserver = new MutationObserver(() => {
+        const newTheme = detectTheme();
+        applyTheme(newTheme); // Update launcher theme
+        iframe.contentWindow.postMessage({ type: 'LUMINE_THEME_CHANGE', theme: newTheme }, '*');
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+    themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme'] });
 
     // Toggle Logic
     let isOpen = false;

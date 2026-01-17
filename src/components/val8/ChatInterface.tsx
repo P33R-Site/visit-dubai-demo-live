@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Sparkles, Mic, MicOff, Loader2, Wifi, WifiOff, Plane } from 'lucide-react';
+import { Send, Sparkles, Mic, MicOff, Loader2, Wifi, WifiOff, Plane, CheckCircle, XCircle } from 'lucide-react';
 import { useVal8 } from './Val8Context';
 import { useAudioChat } from '@/hooks/useAudioChat';
-import { TripPlan } from '@/lib/types';
+import { TripPlan, Suggestion } from '@/lib/types';
 
 // Shimmer loading card component
 function ShimmerCard() {
@@ -80,6 +80,128 @@ function QuestionCard({ question, options, onSelect }: { question?: string; opti
 // Alias for backward compatibility
 const QuickReplyChips = QuestionCard;
 
+// Suggestion Card Component - Interactive AI suggestions
+function SuggestionCard({ suggestion, onAccept, onReject }: { suggestion: Suggestion; onAccept: () => void; onReject: () => void }) {
+  const [isResponding, setIsResponding] = useState(false);
+
+  const handleAccept = () => {
+    setIsResponding(true);
+    onAccept();
+  };
+
+  const handleReject = () => {
+    setIsResponding(true);
+    onReject();
+  };
+
+  const item = suggestion.item;
+  const formatPrice = (price: any) => {
+    if (!price || price === 0) return null;
+    const num = typeof price === 'string' ? parseFloat(price) : price;
+    return isNaN(num) ? null : `$${num.toLocaleString()}`;
+  };
+
+  return (
+    <div className="suggestion-card mt-3">
+      {/* Card with premium gradient styling */}
+      <div className="relative overflow-hidden rounded-xl p-5" style={{
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%)',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(102, 126, 234, 0.2)',
+      }}>
+        {/* Decorative glow */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xl">💡</span>
+          <span className="text-xs font-semibold text-primary uppercase tracking-wider">AI Suggestion</span>
+        </div>
+
+        {/* Question */}
+        <p className="text-text-primary dark:text-white font-medium mb-4">{suggestion.question}</p>
+
+        {/* Suggestion Details */}
+        <div className="bg-white/5 dark:bg-black/20 rounded-lg p-4 mb-4 space-y-2">
+          <p className="text-text-primary dark:text-white font-semibold">{item.name}</p>
+          {item.description && (
+            <p className="text-sm text-text-secondary dark:text-white/70">{item.description}</p>
+          )}
+          <div className="flex flex-wrap gap-3 text-xs text-text-muted dark:text-white/60 mt-2">
+            {item.date && (
+              <span className="flex items-center gap-1">
+                📅 {item.date} {item.time || ''}
+              </span>
+            )}
+            {item.location && (
+              <span className="flex items-center gap-1">
+                📍 {item.location}
+              </span>
+            )}
+          </div>
+          {formatPrice(item.price) && (
+            <p className="text-lg font-bold text-primary mt-2">{formatPrice(item.price)}</p>
+          )}
+          {item.rsvp_required && (
+            <p className="text-xs text-amber-400 flex items-center gap-1 mt-1">
+              ⚠️ RSVP Required
+            </p>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleAccept}
+            disabled={isResponding}
+            className="flex-1 px-4 py-3 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              background: 'rgba(34, 197, 94, 0.2)',
+              border: '1px solid rgba(34, 197, 94, 0.4)',
+              color: 'rgb(34, 197, 94)',
+            }}
+            onMouseEnter={(e) => {
+              if (!isResponding) {
+                e.currentTarget.style.background = 'rgba(34, 197, 94, 0.3)';
+                e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.6)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+            }}
+          >
+            <CheckCircle className="w-4 h-4" />
+            Yes, add it
+          </button>
+          <button
+            onClick={handleReject}
+            disabled={isResponding}
+            className="flex-1 px-4 py-3 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: 'var(--color-text-secondary, #9CA3AF)',
+            }}
+            onMouseEnter={(e) => {
+              if (!isResponding) {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }}
+          >
+            <XCircle className="w-4 h-4" />
+            No, skip
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Trip Plan Card Component
 const TripPlanCard: React.FC<{ tripPlan: TripPlan }> = ({ tripPlan }) => {
@@ -168,6 +290,7 @@ export const ChatInterface: React.FC = () => {
     startNewTrip,
     hasReachedFullContext,
     activeTripPlan,
+    currentSuggestion,
   } = useVal8();
 
   const [inputValue, setInputValue] = useState('');
@@ -377,6 +500,22 @@ export const ChatInterface: React.FC = () => {
                 <span className="w-2 h-2 bg-text-muted dark:bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms', animationDuration: '0.6s' }} />
                 <span className="w-2 h-2 bg-text-muted dark:bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms', animationDuration: '0.6s' }} />
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Show current suggestion if present */}
+        {currentSuggestion && (
+          <div className="flex items-start gap-2 mt-3">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-3 h-3 text-white" />
+            </div>
+            <div className="flex-1">
+              <SuggestionCard
+                suggestion={currentSuggestion}
+                onAccept={() => sendMessage('yes')}
+                onReject={() => sendMessage('no')}
+              />
             </div>
           </div>
         )}

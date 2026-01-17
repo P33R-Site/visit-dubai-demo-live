@@ -138,13 +138,25 @@ const Val8Context = createContext<Val8ContextType | undefined>(undefined);
 interface Val8ProviderProps {
   children: ReactNode;
   initialExpanded?: boolean;
+  forceExpanded?: boolean; // Prevent collapse (for iframe embedding)
 }
 
-export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExpanded = false }) => {
+export const Val8Provider: React.FC<Val8ProviderProps> = ({
+  children,
+  initialExpanded = false,
+  forceExpanded = false
+}) => {
   const { user: authUser } = useAuth();
 
   const [currentFrame, setCurrentFrame] = useState(1);
-  const [isExpanded, setIsExpanded] = useState(initialExpanded);
+  const [isExpanded, setIsExpandedState] = useState(initialExpanded);
+
+  // Wrapper to prevent collapse when forceExpanded is true
+  const setIsExpanded = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    if (!forceExpanded) {
+      setIsExpandedState(value);
+    }
+  }, [forceExpanded]);
   const [userIntent, setUserIntent] = useState<UserIntent>(null);
   const [tripContext, setTripContext] = useState<TripContext>({});
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -193,14 +205,6 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
   const [demoPhase, setDemoPhase] = useState<'idle' | 'typing' | 'processing' | 'responding'>('idle');
-
-  // Legacy login/logout for demo (no-op, use AuthContext instead)
-  const login = useCallback(() => {
-    setShowLoginModal(true);
-  }, []);
-  const logout = useCallback(() => {
-    // Handled by AuthContext
-  }, []);
 
   // WebSocket chat handlers
   const handleTyping = useCallback((typing: boolean) => {
@@ -540,6 +544,18 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({ children, initialExp
       setIsLoading(true);
     }
   }, [wsSendMessage, isConnected, connectChat]);
+
+  // Legacy login/logout for demo (backward compatibility)
+  const login = useCallback(() => {
+    setShowLoginModal(true);
+  }, []);
+
+  const logout = useCallback(() => {
+    // Full cleanup on logout: disconnect WebSocket and reset all state
+    console.log('[Val8Context] Logging out - cleaning up all state');
+    disconnectChat();
+    startNewTrip();
+  }, [disconnectChat, startNewTrip]);
 
   return (
     <Val8Context.Provider

@@ -38,6 +38,9 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}): UseWebS
     const reconnectAttempts = useRef(0);
     const maxReconnectAttempts = 5;
     const isConnectingRef = useRef(false);
+    const isReconnectingRef = useRef(false); // Track if we're actively reconnecting
+    const messageQueueRef = useRef<string[]>([]); // Queue messages during reconnection
+    const shouldReconnectRef = useRef(true); // Allow disabling reconnection on intentional disconnect
 
     const {
         onTyping,
@@ -64,6 +67,8 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}): UseWebS
         }
 
         isConnectingRef.current = true;
+        shouldReconnectRef.current = true; // Re-enable reconnection on manual connect
+        reconnectAttempts.current = 0; // Reset reconnect attempts on manual connect
 
         try {
             const wsUrl = getWsUrl('/chat/ws');
@@ -94,6 +99,9 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}): UseWebS
                 }
 
                 ws.send(JSON.stringify(initMessage));
+
+                // Process any queued messages after connection is established
+                // Wait for 'connected' event before sending to ensure server is ready
             };
 
             ws.onmessage = (event) => {
@@ -104,9 +112,24 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}): UseWebS
                         case 'connected':
                             setIsConnected(true);
                             onConnectionChange?.(true);
+                            isReconnectingRef.current = false; // Clear reconnecting flag
+
                             if (data.session_id) {
                                 setSessionId(data.session_id);
                                 setSessionIdState(data.session_id);
+                            }
+
+                            // Send any queued messages now that we're connected
+                            if (messageQueueRef.current.length > 0) {
+                                console.log(`[WebSocket] Sending ${messageQueueRef.current.length} queued messages`);
+                                messageQueueRef.current.forEach(msg => {
+                                    const msgObj: WebSocketMessage = {
+                                        type: 'message',
+                                        message: msg,
+                                    };
+                                    wsRef.current?.send(JSON.stringify(msgObj));
+                                });
+                                messageQueueRef.current = [];
                             }
                             break;
 
@@ -191,14 +214,20 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}): UseWebS
                 onConnectionChange?.(false);
                 wsRef.current = null;
 
-                // Attempt reconnection with exponential backoff
-                if (reconnectAttempts.current < maxReconnectAttempts) {
+                // Attempt reconnection with exponential backoff only if shouldReconnect is true
+                if (shouldReconnectRef.current && reconnectAttempts.current < maxReconnectAttempts) {
+                    isReconnectingRef.current = true; // Mark that we're reconnecting
                     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
                     reconnectAttempts.current++;
+
+                    console.log(`[WebSocket] Connection lost, reconnecting in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
 
                     reconnectTimeoutRef.current = setTimeout(() => {
                         connect();
                     }, delay);
+                } else if (reconnectAttempts.current >= maxReconnectAttempts) {
+                    isReconnectingRef.current = false;
+                    console.error('[WebSocket] Max reconnection attempts reached');
                 }
             };
         } catch (e) {
@@ -213,6 +242,8 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}): UseWebS
             reconnectTimeoutRef.current = null;
         }
 
+        shouldReconnectRef.current = false; // Disable auto-reconnect on intentional disconnect
+        isReconnectingRef.current = false;
         reconnectAttempts.current = maxReconnectAttempts; // Prevent auto-reconnect
 
         if (wsRef.current) {
@@ -231,7 +262,12 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}): UseWebS
                 message,
             };
             wsRef.current.send(JSON.stringify(msg));
+        } else if (isReconnectingRef.current) {
+            // Queue message if we're actively reconnecting
+            console.log('[WebSocket] Queuing message during reconnection:', message);
+            messageQueueRef.current.push(message);
         } else {
+            // Only show error if we're not reconnecting (permanent failure)
             onError?.('Not connected to server');
         }
     }, [onError]);

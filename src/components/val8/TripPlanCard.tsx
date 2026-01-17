@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { TripPlan } from '@/lib/types';
-import { Plane, Building2, Sparkles, Calendar, CreditCard, MapPin, Clock, Star, Check } from 'lucide-react';
+import { Plane, Building2, Sparkles, Calendar, CreditCard, MapPin, Clock, Star, Check, PartyPopper, Landmark } from 'lucide-react';
 
 interface TripPlanCardProps {
     tripPlan: TripPlan;
@@ -189,6 +189,19 @@ export function TripPlanCard({ tripPlan, onApprove, isApproving = false, showBoo
                         </div>
                     </div>
                 )}
+
+                {/* Trip Explanation - Why This Plan? */}
+                {tripPlan.explanation && (
+                    <div className="mt-4 p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/10 dark:border-primary/20">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-base">💡</span>
+                            <h4 className="text-sm font-semibold text-primary">Why This Plan?</h4>
+                        </div>
+                        <p className="text-xs text-text-secondary dark:text-white/70 leading-relaxed">
+                            {tripPlan.explanation}
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* Footer with total and action */}
@@ -228,11 +241,11 @@ export function TripPlanCard({ tripPlan, onApprove, isApproving = false, showBoo
                         <button
                             onClick={onApprove}
                             disabled={isApproving}
-                            className="px-4 py-2.5 bg-primary text-text-on-primary rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+                            className="px-4 py-2.5 bg-primary text-black rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
                         >
                             {isApproving ? (
                                 <>
-                                    <div className="w-4 h-4 border-2 border-text-on-primary/30 border-t-text-on-primary rounded-full animate-spin" />
+                                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                                     Booking...
                                 </>
                             ) : (

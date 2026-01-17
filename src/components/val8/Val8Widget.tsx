@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Minimize2, Maximize2, User, Sparkles, Bot, LogOut, Map } from 'lucide-react';
+import { MessageSquare, X, Minimize2, Maximize2, User, Sparkles, Bot, LogOut, Map, Plus } from 'lucide-react';
 import { useVal8, Val8Provider } from './Val8Context';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatInterface } from './ChatInterface';
@@ -205,6 +205,7 @@ const Val8WidgetContent: React.FC = () => {
         activeAction,
         clearActiveAction,
         addMessage,
+        startNewTrip, // Add this to get startNewTrip from context
     } = useVal8();
     const { user: authUser, logout: authLogout } = useAuth();
     const [showLoader, setShowLoader] = useState(false);
@@ -313,6 +314,16 @@ const Val8WidgetContent: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
+                                {/* New Trip Button - shows when there's an active conversation */}
+                                {chatHistory.length > 0 && (
+                                    <button
+                                        onClick={startNewTrip}
+                                        className="w-8 h-8 rounded-full bg-surface-alt/50 dark:bg-surface-100 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-primary dark:hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors"
+                                        title="Start New Trip"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                )}
                                 {/* Logout Button - only shows when user is logged in */}
                                 {authUser && (
                                     <button

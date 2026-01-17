@@ -1,182 +1,508 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Val8 Widget - Integration Demo</title>
+    <title>Val8 Widget - Integration Guide</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
+        /* Dark Theme (default) */
+        html.dark body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0a0a0a 100%);
+            color: #fff;
+        }
+
+        /* Light Theme */
+        html.light body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f1f3f5 100%);
+            color: #1a1a1a;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
-            color: white;
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
         }
+
+        /* Theme-aware colors */
+        html.dark .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        html.light .card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        html.light h1,
+        html.light h2,
+        html.light h3,
+        html.light .logo-text {
+            color: #1a1a1a;
+        }
+
+        html.light .subtitle,
+        html.light p {
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+        html.light pre {
+            background: #f1f3f5;
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        html.light code {
+            color: #0a8660;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid #D4AF37;
+            background: transparent;
+            color: #D4AF37;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
         .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 60px 20px;
+            padding: 60px 24px;
         }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(90deg, #D4AF37, #FFD700);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
         }
-        .subtitle {
-            font-size: 1.25rem;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 3rem;
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D4AF37 0%, #B8963C 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
+
+        .logo-icon span {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: #fff;
         }
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 12px;
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .logo-subtitle {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             color: #D4AF37;
         }
-        .card p {
-            color: rgba(255,255,255,0.7);
-            line-height: 1.6;
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
             margin-bottom: 16px;
+            font-weight: 600;
+            color: #fff;
         }
-        pre {
-            background: rgba(0,0,0,0.4);
-            border-radius: 8px;
-            padding: 16px;
-            overflow-x: auto;
+
+        h1 span {
+            background: linear-gradient(90deg, #D4AF37, #F5D76E);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 48px;
+            max-width: 600px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: #D4AF37;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
             font-size: 14px;
-            line-height: 1.5;
         }
+
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
         code {
             color: #98d8c8;
+            font-family: 'Monaco', 'Consolas', monospace;
         }
+
+        .highlight {
+            color: #D4AF37;
+        }
+
+        .comment {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
         .btn {
-            display: inline-block;
-            background: #D4AF37;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #D4AF37 0%, #B8963C 100%);
             color: #000;
             padding: 12px 24px;
-            border-radius: 8px;
+            border-radius: 12px;
             border: none;
             font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
             margin-right: 12px;
             margin-top: 12px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
         }
+
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
         }
+
         .btn-outline {
             background: transparent;
-            border: 2px solid #D4AF37;
+            border: 1px solid #D4AF37;
             color: #D4AF37;
         }
+
+        .btn-outline:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 48px;
         }
+
         .feature {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
             padding: 20px;
+            text-align: center;
         }
+
+        .feature-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
         .feature h3 {
-            font-size: 1rem;
-            margin-bottom: 8px;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #fff;
+            font-weight: 600;
         }
+
         .feature p {
-            font-size: 0.875rem;
-            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0;
+        }
+
+        .domain-url {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #D4AF37;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #D4AF37;
+            color: #000;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 48px 0;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Val8 Widget</h1>
-        <p class="subtitle">AI-powered travel concierge that can be embedded on any website</p>
 
-        <div class="card">
-            <h2>🚀 Quick Integration</h2>
-            <p>Add this code snippet before the closing <code>&lt;/body&gt;</code> tag:</p>
-            <pre><code>&lt;!-- Val8 Widget --&gt;
-&lt;script&gt;
-  window.Val8Config = {
-    widgetUrl: 'https://your-domain.vercel.app/widget'
-  };
-&lt;/script&gt;
-&lt;script src="https://your-domain.vercel.app/embed.js"&gt;&lt;/script&gt;</code></pre>
+<body>
+    <!-- Theme Toggle Button for Testing -->
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span> Toggle Theme
+    </button>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                icon.textContent = '🌙';
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                icon.textContent = '☀️';
+            }
+        }
+    </script>
+
+    <div class="container">
+        <!-- Logo -->
+        <div class="logo">
+            <div class="logo-icon">
+                <span>V</span>
+            </div>
+            <div>
+                <div class="logo-text">Val8</div>
+                <div class="logo-subtitle">AI Concierge</div>
+            </div>
         </div>
 
+        <h1>Embed <span>Val8 Widget</span></h1>
+        <p class="subtitle">Add AI-powered travel concierge to any website with just one line of code. Your customers
+            can plan their Dubai trip without leaving your site.</p>
+
+        <!-- Quick Start -->
+        <div class="card">
+            <h2>🚀 Quick Start</h2>
+            <p>Add this single line before your closing <code>&lt;/body&gt;</code> tag:</p>
+            <pre><code><span class="comment">&lt;!-- Val8 AI Concierge Widget --&gt;</span>
+<span class="highlight">&lt;script src="https://visit-dubai-demo-live.vercel.app/embed.js"&gt;&lt;/script&gt;</span></code></pre>
+            <p style="margin-top: 16px; margin-bottom: 0;">That's it! The widget will appear in the bottom-right corner
+                of your website.</p>
+        </div>
+
+        <!-- Configuration -->
         <div class="card">
             <h2>⚙️ Configuration Options</h2>
-            <p>Customize the widget behavior:</p>
-            <pre><code>window.Val8Config = {
-  // Required: URL of your deployed widget
-  widgetUrl: 'https://your-domain.vercel.app/widget',
-};</code></pre>
+            <p>Customize the widget before loading the script:</p>
+            <pre><code><span class="comment">&lt;!-- Optional: Custom configuration --&gt;</span>
+&lt;script&gt;
+  window.Val8Config = {
+    <span class="comment">// Widget URL (use this for custom deployments)</span>
+    widgetUrl: '<span class="highlight">https://visit-dubai-demo-live.vercel.app/widget</span>'
+  };
+&lt;/script&gt;
+
+<span class="comment">&lt;!-- Load the widget --&gt;</span>
+&lt;script src="<span class="highlight">https://visit-dubai-demo-live.vercel.app/embed.js</span>"&gt;&lt;/script&gt;</code></pre>
         </div>
 
+        <!-- Theme Setup -->
+        <div class="card">
+            <h2>🎨 Theme Integration</h2>
+            <p>The widget automatically detects and follows your website's theme. Here's how to ensure it works:</p>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">Method 1: CSS Class (Recommended)</h3>
+            <p>Add a <code>dark</code> or <code>light</code> class to your <code>&lt;html&gt;</code> or
+                <code>&lt;body&gt;</code> element:</p>
+            <pre><code><span class="comment">&lt;!-- For dark theme --&gt;</span>
+<span class="highlight">&lt;html class="dark"&gt;</span>
+
+<span class="comment">&lt;!-- For light theme --&gt;</span>
+<span class="highlight">&lt;html class="light"&gt;</span></code></pre>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">Method 2: Data Attribute</h3>
+            <p>Use a <code>data-theme</code> attribute on your root element:</p>
+            <pre><code><span class="comment">&lt;!-- For dark theme --&gt;</span>
+<span class="highlight">&lt;html data-theme="dark"&gt;</span>
+
+<span class="comment">&lt;!-- For light theme --&gt;</span>
+<span class="highlight">&lt;html data-theme="light"&gt;</span></code></pre>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">Method 3: Automatic Detection</h3>
+            <p>If neither class nor attribute is set, the widget will automatically detect your theme based on:</p>
+            <ul style="margin: 12px 0; padding-left: 20px; font-size: 14px; color: rgba(255,255,255,0.6);">
+                <li>Background color luminance of your page</li>
+                <li>System preference (<code>prefers-color-scheme</code>)</li>
+            </ul>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">Dynamic Theme Switching</h3>
+            <p>When you toggle themes on your website, the widget automatically updates! Just toggle the class:</p>
+            <pre><code><span class="comment">// JavaScript to toggle theme</span>
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.classList.contains('<span class="highlight">dark</span>')) {
+    html.classList.remove('dark');
+    html.classList.add('<span class="highlight">light</span>');
+  } else {
+    html.classList.remove('light');
+    html.classList.add('<span class="highlight">dark</span>');
+  }
+  <span class="comment">// Widget theme updates automatically!</span>
+}</code></pre>
+            <p style="margin-top: 16px; margin-bottom: 0;">
+                <strong style="color: #D4AF37;">Try it now!</strong> Click the "☀️ Toggle Theme" button at the top-right
+                corner to see the widget adapt.
+            </p>
+        </div>
+
+        <!-- JavaScript API -->
         <div class="card">
             <h2>🎮 JavaScript API</h2>
-            <p>Control the widget programmatically:</p>
-            <pre><code>// Open the widget
+            <p>Control the widget programmatically from your website:</p>
+            <pre><code><span class="comment">// Open the widget</span>
 window.Prv8.open();
 
-// Close the widget  
+<span class="comment">// Close the widget</span>
 window.Prv8.close();
 
-// Open with a search query
-window.Prv8.search('luxury hotels in Dubai');</code></pre>
-            
-            <button class="btn" onclick="Prv8.open()">Open Widget</button>
-            <button class="btn btn-outline" onclick="Prv8.search('plan a trip to Dubai')">Search Demo</button>
+<span class="comment">// Open with a search query</span>
+window.Prv8.search('<span class="highlight">luxury hotels in Dubai</span>');</code></pre>
+
+            <button class="btn" onclick="Prv8.open()">
+                <span>💬</span> Open Widget
+            </button>
+            <button class="btn btn-outline" onclick="Prv8.search('plan a luxury trip to Dubai')">
+                <span>✨</span> Try Search Demo
+            </button>
         </div>
 
+        <!-- Custom Events -->
         <div class="card">
             <h2>📡 Custom Events</h2>
-            <p>Trigger the widget from custom events:</p>
-            <pre><code>// Dispatch a custom search event
-window.dispatchEvent(new CustomEvent('prv8-search', {
-  detail: { query: 'best restaurants in Dubai' }
+            <p>Trigger the widget from custom events on your website:</p>
+            <pre><code><span class="comment">// Dispatch a custom search event</span>
+window.dispatchEvent(new CustomEvent('<span class="highlight">prv8-search</span>', {
+  detail: { query: 'best restaurants in Dubai Marina' }
 }));</code></pre>
         </div>
 
+        <!-- Live Test -->
+        <div class="card">
+            <h2>🧪 Test It Now</h2>
+            <p>The widget is already loaded on this page. Click the <strong>"Speak to Nora"</strong> button in the
+                bottom-right corner, or use these buttons:</p>
+            <button class="btn" onclick="Prv8.open()">
+                <span>💬</span> Open Chat
+            </button>
+            <button class="btn btn-outline" onclick="Prv8.search('5-star beachfront resort')">
+                <span>🏨</span> Find Hotels
+            </button>
+            <button class="btn btn-outline" onclick="Prv8.search('desert safari experience')">
+                <span>🐪</span> Find Experiences
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Features -->
         <div class="features">
             <div class="feature">
-                <h3>🌐 Works Everywhere</h3>
-                <p>Compatible with any website - WordPress, Shopify, static HTML, React, Vue, and more.</p>
+                <div class="feature-icon">🌐</div>
+                <h3>Universal</h3>
+                <p>Works on any website platform</p>
             </div>
             <div class="feature">
-                <h3>🎨 Responsive</h3>
-                <p>Automatically adapts to mobile and desktop screens with smooth animations.</p>
+                <div class="feature-icon">🎨</div>
+                <h3>Beautiful UI</h3>
+                <p>Premium design that adapts</p>
             </div>
             <div class="feature">
-                <h3>🔒 Secure</h3>
-                <p>Runs in an isolated iframe with secure postMessage communication.</p>
+                <div class="feature-icon">📱</div>
+                <h3>Responsive</h3>
+                <p>Perfect on mobile & desktop</p>
             </div>
             <div class="feature">
-                <h3>⚡ Lightweight</h3>
-                <p>Only ~8KB embed script. Main widget loads on-demand in the iframe.</p>
+                <div class="feature-icon">⚡</div>
+                <h3>Lightweight</h3>
+                <p>~8KB loader, fast loading</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure</h3>
+                <p>Isolated iframe sandbox</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎯</div>
+                <h3>Smart AI</h3>
+                <p>Powered by advanced AI</p>
             </div>
         </div>
     </div>
 
-    <!-- Val8 Widget Embed -->
+    <!-- Val8 Widget -->
+    <script>
+        // Use localhost for local development, production URL for deployed version
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        window.Val8Config = {
+            widgetUrl: isLocal ? 'http://localhost:3000/widget' : 'https://visit-dubai-demo-live.vercel.app/widget'
+        };
+    </script>
     <script src="/embed.js"></script>
 </body>
+
 </html>

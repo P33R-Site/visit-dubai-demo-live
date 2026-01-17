@@ -1,9 +1,16 @@
 "use client";
 
+/**
+ * Embedded Widget Page - Full-featured standalone chat widget
+ * Matches all features from the main Val8Widget
+ */
+
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, X, LogOut, Plus, Maximize2, Minimize2, Map } from 'lucide-react';
 import { ChatInterface } from '@/components/val8/ChatInterface';
 import { Val8Provider, useVal8 } from '@/components/val8/Val8Context';
-import { User, Maximize2, Minimize2, X, LogOut } from 'lucide-react';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { BookingFlow } from '@/components/val8/BookingFlow';
 import { PostBookingSummary } from '@/components/val8/PostBookingSummary';
 import { Dashboard } from '@/components/val8/Dashboard';
@@ -11,145 +18,242 @@ import { ExitModal } from '@/components/val8/ExitModal';
 import { LoginModal } from '@/components/val8/LoginModal';
 import { ProfileModal } from '@/components/val8/ProfileModal';
 import { ChangePasswordModal } from '@/components/val8/ChangePasswordModal';
-import { useAuth } from '@/contexts/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { TripPlanCard } from '@/components/val8/TripPlanCard';
+import { PlanItemCard } from '@/components/val8/PlanItemCard';
+import { approveTrip } from '@/lib/trip';
+import { getSessionId } from '@/lib/session';
 
-const WidgetHeader = ({ onClose }: { onClose: () => void }) => {
-    const { setView, view, user, setShowLoginModal } = useVal8();
+// Trip Plan Panel - Full featured, matches main widget
+const TripPlanPanel: React.FC = () => {
+    const {
+        activeTripPlan,
+        sendMessage,
+        planItems,
+        chatHistory,
+        pendingTripPlan,
+        hasPendingTrip,
+        confirmPendingTrip,
+        declinePendingTrip,
+        isTripApprovedByAI,
+        hasReachedFullContext,
+    } = useVal8();
+
+    const hasActiveConversation = chatHistory.length > 0;
+    const [isApproving, setIsApproving] = useState(false);
+
+    // Handle trip approval - same as main widget
+    const handleApproveTrip = async () => {
+        if (!activeTripPlan?.id) return;
+        const sessionId = getSessionId();
+        if (!sessionId) {
+            console.error('No session ID available');
+            return;
+        }
+        setIsApproving(true);
+        try {
+            const result = await approveTrip(activeTripPlan.id, sessionId);
+            if (result.status === 'booked' || result.status === 'confirmed') {
+                sendMessage('Trip approved and booked successfully!');
+            }
+        } catch (error) {
+            console.error('Failed to approve trip:', error);
+        } finally {
+            setIsApproving(false);
+        }
+    };
+
+    const sectionLabels: Record<string, string> = {
+        weather: '🌤️ Weather',
+        flight: '✈️ Flights',
+        hotel: '🏨 Accommodation',
+        experience: '✨ Experiences',
+        event: '📅 Events',
+        attraction: '🏛️ Attractions',
+        transport: '🚗 Transport',
+        other: '📋 Other',
+    };
+
+    const categorizedItems = React.useMemo(() => {
+        const categories: Record<string, typeof planItems> = {
+            weather: [], flight: [], hotel: [], experience: [],
+            event: [], attraction: [], transport: [], other: [],
+        };
+        planItems.forEach(item => {
+            const type = item.type.toLowerCase();
+            if (categories[type]) categories[type].push(item);
+            else categories.other.push(item);
+        });
+        return categories;
+    }, [planItems]);
+
+    const displayOrder = ['weather', 'flight', 'hotel', 'experience', 'event', 'attraction', 'transport', 'other'];
+
+    return (
+        <div className="flex flex-col w-[350px] border-l border-border-subtle dark:border-white/10 bg-surface-alt/50 dark:bg-white/5 h-full flex-shrink-0">
+            <div className="px-4 py-3 border-b border-border-subtle dark:border-white/10 flex items-center gap-2">
+                <Map className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold text-text-primary dark:text-white">Trip Plan</h3>
+                {hasReachedFullContext && (
+                    <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                        Full Context
+                    </span>
+                )}
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+                {/* Pending Trip Confirmation */}
+                {hasPendingTrip && pendingTripPlan && (
+                    <div className="mb-4 space-y-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-lg">📋</span>
+                                <p className="text-sm font-semibold text-text-primary dark:text-white">
+                                    Previous Trip Found
+                                </p>
+                            </div>
+                            <p className="text-xs text-text-secondary dark:text-white/60 mb-3">
+                                You have a pending trip to <span className="font-medium text-primary">{pendingTripPlan.destination}</span> from a previous session.
+                            </p>
+                            <div className="text-xs text-text-muted dark:text-white/40 mb-4 space-y-1">
+                                <p>📅 {pendingTripPlan.start_date} - {pendingTripPlan.end_date}</p>
+                                <p>💰 ${pendingTripPlan.total_price?.toLocaleString() || 0} {pendingTripPlan.currency || 'USD'}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={confirmPendingTrip}
+                                    className="flex-1 px-3 py-2 bg-primary text-black text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                                >
+                                    Continue Trip
+                                </button>
+                                <button
+                                    onClick={declinePendingTrip}
+                                    className="flex-1 px-3 py-2 bg-white/10 text-text-secondary dark:text-white/60 text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
+                                >
+                                    Start Fresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Categorized Plan Items */}
+                {hasActiveConversation && planItems.length > 0 && !hasPendingTrip && (
+                    <div className="mb-4 space-y-4">
+                        <p className="text-xs text-text-muted dark:text-white/40 uppercase tracking-wider">Building your plan...</p>
+                        {displayOrder.map(type => {
+                            const items = categorizedItems[type];
+                            if (!items || items.length === 0) return null;
+                            return (
+                                <div key={type} className="space-y-2">
+                                    <p className="text-xs font-semibold text-text-secondary dark:text-white/60 uppercase tracking-wider">
+                                        {sectionLabels[type]}
+                                    </p>
+                                    {items.map((item, idx) => (
+                                        <PlanItemCard key={`${item.type}-${idx}`} item={item} className="text-sm" />
+                                    ))}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Full Trip Plan Card */}
+                {activeTripPlan && !hasPendingTrip ? (
+                    <TripPlanCard
+                        tripPlan={activeTripPlan}
+                        onApprove={handleApproveTrip}
+                        isApproving={isApproving}
+                        showBookButton={isTripApprovedByAI}
+                    />
+                ) : !hasPendingTrip && (!hasActiveConversation || planItems.length === 0) ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                            <Map className="w-6 h-6 text-primary/50" />
+                        </div>
+                        <p className="text-sm text-text-muted dark:text-white/40">No trip plan yet</p>
+                        <p className="text-xs text-text-muted/60 dark:text-white/30 mt-1">Chat with Val8 to create one</p>
+                    </div>
+                ) : null}
+            </div>
+        </div>
+    );
+};
+
+// Widget Header
+const WidgetHeader: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const { setView, view, startNewTrip, chatHistory, setShowLoginModal } = useVal8();
     const { user: authUser, logout: authLogout } = useAuth();
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
     const handleProfileClick = () => {
-        if (authUser) {
-            setShowProfileModal(true);
-        } else {
-            setShowLoginModal(true);
-        }
+        if (authUser) setShowProfileModal(true);
+        else setShowLoginModal(true);
     };
 
     const handleToggleFullscreen = () => {
         const nextView = view === 'chat' ? 'dashboard' : 'chat';
         setView(nextView);
-        const isFullscreen = nextView === 'dashboard';
-        window.parent.postMessage({ type: 'LUMINE_WIDGET_MODE', mode: isFullscreen ? 'fullscreen' : 'standard' }, '*');
+        window.parent.postMessage({ type: 'LUMINE_WIDGET_MODE', mode: nextView === 'dashboard' ? 'fullscreen' : 'standard' }, '*');
     };
 
     return (
         <>
-            <div className="h-16 bg-surface-alt/50 dark:bg-white/5 backdrop-blur-md border-b border-border-subtle dark:border-white/5 flex items-center justify-between px-6 shrink-0 relative z-20">
+            <div className="h-14 bg-surface dark:bg-[#0a0a0a] border-b border-border-subtle dark:border-white/10 flex items-center justify-between px-4 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary">
                         <span className="font-serif font-bold text-surface text-lg">V</span>
                     </div>
                     <div>
-                        <h1 className="text-text-primary dark:text-white font-serif text-lg tracking-wide">Val8</h1>
-                        <p className="text-[10px] uppercase tracking-widest font-medium text-primary">Powered by PRV8.</p>
+                        <h1 className="text-text-primary dark:text-white font-serif text-base">Val8</h1>
+                        <p className="text-[9px] uppercase tracking-widest text-primary">AI Concierge</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    {/* Logout Button - Only show when authenticated */}
-                    {authUser && (
-                        <button
-                            onClick={() => {
-                                authLogout();
-                                window.parent.postMessage({ type: 'LUMINE_WIDGET_CLOSE' }, '*');
-                            }}
-                            className="w-8 h-8 rounded-full bg-surface-alt/50 dark:bg-surface-100 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                            title="Logout"
-                        >
-                            <LogOut className="w-4 h-4" />
+                <div className="flex items-center gap-1.5">
+                    {chatHistory.length > 0 && (
+                        <button onClick={startNewTrip} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-primary hover:bg-primary/10 transition-colors" title="New Trip">
+                            <Plus className="w-3.5 h-3.5" />
                         </button>
                     )}
-                    <button
-                        onClick={handleProfileClick}
-                        className="w-8 h-8 rounded-full bg-surface-alt/50 dark:bg-surface-100 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white hover:bg-surface-alt dark:hover:bg-surface-200 transition-colors"
-                    >
+                    {authUser && (
+                        <button onClick={() => authLogout()} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-red-500 transition-colors" title="Logout">
+                            <LogOut className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                    <button onClick={handleProfileClick} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
                         {authUser ? (
                             <div className="w-full h-full rounded-full bg-primary text-surface flex items-center justify-center font-bold text-xs">
-                                {authUser?.name?.charAt(0).toUpperCase()}
+                                {authUser.name?.charAt(0).toUpperCase()}
                             </div>
                         ) : (
-                            <User className="w-4 h-4" />
+                            <User className="w-3.5 h-3.5" />
                         )}
                     </button>
-                    <button
-                        onClick={handleToggleFullscreen}
-                        className="w-8 h-8 rounded-full bg-surface-alt/50 dark:bg-surface-100 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white hover:bg-surface-alt dark:hover:bg-surface-200 transition-colors"
-                    >
-                        {view === 'chat' ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+                    <button onClick={handleToggleFullscreen} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                        {view === 'chat' ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
                     </button>
-                    <button
-                        onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-surface-alt/50 dark:bg-surface-100 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white hover:bg-surface-alt dark:hover:bg-surface-200 transition-colors"
-                    >
-                        <X className="w-4 h-4" />
+                    <button onClick={onClose} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                        <X className="w-3.5 h-3.5" />
                     </button>
                 </div>
             </div>
 
-            {/* Modals rendered inside header context */}
-            <ProfileModal
-                isOpen={showProfileModal}
-                onClose={() => setShowProfileModal(false)}
-                onOpenChangePassword={() => setShowChangePasswordModal(true)}
-            />
-            <ChangePasswordModal
-                isOpen={showChangePasswordModal}
-                onClose={() => setShowChangePasswordModal(false)}
-            />
+            <ProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} onOpenChangePassword={() => setShowChangePasswordModal(true)} />
+            <ChangePasswordModal isOpen={showChangePasswordModal} onClose={() => setShowChangePasswordModal(false)} />
         </>
     );
 };
 
-const WidgetContent = () => {
-    const {
-        view,
-        setIsExpanded,
-        chatHistory,
-        bookingState,
-        setShowExitModal,
-        activeAction,
-        addMessage,
-        clearActiveAction,
-        isExpanded: isExpandedContext
-    } = useVal8();
-
+// Main Widget Content
+const WidgetContent: React.FC = () => {
+    const { view, chatHistory, bookingState, setShowExitModal } = useVal8();
     const [showLoader, setShowLoader] = useState(true);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setShowLoader(false);
-        }, 2000);
+        const timer = setTimeout(() => setShowLoader(false), 1500);
         return () => clearTimeout(timer);
     }, []);
 
-    useEffect(() => {
-        if (activeAction) {
-            addMessage({
-                sender: 'user',
-                text: activeAction
-            });
-
-            setTimeout(() => {
-                addMessage({
-                    sender: 'val8',
-                    text: `I can certainly help you with "${activeAction}". What specific details would you like to know?`
-                });
-            }, 1000);
-
-            clearActiveAction();
-        }
-    }, [activeAction, addMessage, clearActiveAction]);
-
-    useEffect(() => {
-        if (!isExpandedContext) {
-            window.parent.postMessage({ type: 'LUMINE_WIDGET_CLOSE' }, '*');
-            setIsExpanded(true);
-        }
-    }, [isExpandedContext, setIsExpanded]);
-
-    const handleCloseRequest = () => {
+    const handleClose = () => {
         if (chatHistory.length > 0 && bookingState !== 'confirmed' && bookingState !== 'post-booking') {
             setShowExitModal(true);
         } else {
@@ -157,75 +261,93 @@ const WidgetContent = () => {
         }
     };
 
-    const isFullscreenMode = view === 'dashboard';
-
     return (
-        <motion.div
-            layout
-            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-            className={`
-                overflow-hidden glass-panel border border-border-subtle dark:border-white/10 shadow-2xl flex flex-col bg-surface dark:bg-[#050505]/95 backdrop-blur-3xl
-                ${isFullscreenMode
-                    ? 'w-full h-full md:w-[90vw] md:h-[85vh] md:m-auto md:rounded-[32px] rounded-none'
-                    : 'h-full w-full rounded-[32px]'
-                }
-            `}
-        >
-            <WidgetHeader onClose={handleCloseRequest} />
+        <div className="h-full w-full flex flex-col bg-surface dark:bg-[#050505] overflow-hidden rounded-[20px] shadow-2xl border border-white/10">
+            <WidgetHeader onClose={handleClose} />
 
-            <div className="flex-1 relative overflow-hidden flex flex-col">
+            <div className="flex-1 flex overflow-hidden">
                 <AnimatePresence mode="wait">
                     {showLoader ? (
-                        <motion.div
-                            key="loader"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-surface dark:bg-[#050505] z-50"
-                        >
-                            <div className="w-16 h-16 rounded-full border border-primary/30 flex items-center justify-center mb-6 relative">
+                        <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                            <div className="w-14 h-14 rounded-full border border-primary/30 flex items-center justify-center mb-4 relative">
                                 <div className="absolute inset-0 rounded-full border border-primary/10 animate-ping" />
                                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                             </div>
-                            <h3 className="text-lg font-serif text-text-primary dark:text-white mb-2">Preparing your experience...</h3>
-                            <p className="text-xs text-text-muted dark:text-white/40 font-light tracking-wide">Connecting to global concierge network</p>
+                            <h3 className="text-base font-serif text-white mb-1">Connecting...</h3>
+                            <p className="text-xs text-white/40">Setting up your concierge</p>
                         </motion.div>
                     ) : view === 'dashboard' ? (
-                        <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col relative z-10 overflow-hidden animate-in fade-in">
-                            <div className="flex flex-col md:flex-row h-full">
-                                <div className="w-full md:w-[400px] flex-col bg-surface dark:bg-[#050505] backdrop-blur-xl relative z-10 border-b md:border-b-0 md:border-r border-border-subtle dark:border-white/10 hidden md:flex h-full">
-                                    <ChatInterface />
-                                    <BookingFlow />
-                                    <PostBookingSummary />
-                                </div>
-                                <div className="flex-1 bg-surface-alt dark:bg-black/20 relative z-0 flex flex-col h-full overflow-hidden">
-                                    <Dashboard />
-                                </div>
+                        <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex">
+                            <div className="w-[350px] flex-shrink-0 border-r border-white/10 flex flex-col">
+                                <ChatInterface />
+                                <BookingFlow />
+                                <PostBookingSummary />
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                                <Dashboard />
                             </div>
                         </motion.div>
                     ) : (
-                        <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 relative z-10 overflow-hidden flex flex-col">
-                            <ChatInterface />
-                            <BookingFlow />
-                            <PostBookingSummary />
+                        <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex">
+                            {/* Chat Area */}
+                            <div className="flex-1 flex flex-col overflow-hidden">
+                                <ChatInterface />
+                                <BookingFlow />
+                                <PostBookingSummary />
+                            </div>
+                            {/* Trip Plan Sidebar - 350px to match main widget */}
+                            <TripPlanPanel />
                         </motion.div>
                     )}
                 </AnimatePresence>
-
-                {/* Modals */}
-                <ExitModal />
-                <LoginModal />
             </div>
-        </motion.div>
-    );
-}
 
+            {/* Modals */}
+            <ExitModal />
+            <LoginModal />
+        </div>
+    );
+};
+
+// Main Page Export - with theme detection from parent website
 export default function WidgetPage() {
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+    useEffect(() => {
+        // Get theme from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTheme = urlParams.get('theme');
+        if (urlTheme === 'light' || urlTheme === 'dark') {
+            setTheme(urlTheme);
+        }
+
+        // Listen for theme changes from parent website
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'LUMINE_THEME_CHANGE') {
+                const newTheme = event.data.theme;
+                if (newTheme === 'light' || newTheme === 'dark') {
+                    setTheme(newTheme);
+                }
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
+
+    // Apply theme class to html element
+    useEffect(() => {
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+    }, [theme]);
+
     return (
-        <div className="h-screen w-screen flex flex-col bg-transparent p-0 overflow-hidden">
-            <Val8Provider initialExpanded={true}>
-                <WidgetContent />
-            </Val8Provider>
+        <div className={`h-screen w-screen p-2 bg-transparent ${theme}`}>
+            <AuthProvider>
+                <Val8Provider initialExpanded={true}>
+                    <WidgetContent />
+                </Val8Provider>
+            </AuthProvider>
         </div>
     );
 }
