@@ -210,16 +210,16 @@ const WidgetHeader: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </div>
                 <div className="flex items-center gap-1.5">
                     {chatHistory.length > 0 && (
-                        <button onClick={startNewTrip} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-primary hover:bg-primary/10 transition-colors" title="New Trip">
+                        <button onClick={startNewTrip} className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-primary hover:bg-primary/10 transition-colors" title="New Trip">
                             <Plus className="w-3.5 h-3.5" />
                         </button>
                     )}
                     {authUser && (
-                        <button onClick={() => authLogout()} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-red-500 transition-colors" title="Logout">
+                        <button onClick={() => authLogout()} className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-red-500 transition-colors" title="Logout">
                             <LogOut className="w-3.5 h-3.5" />
                         </button>
                     )}
-                    <button onClick={handleProfileClick} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                    <button onClick={handleProfileClick} className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white transition-colors">
                         {authUser ? (
                             <div className="w-full h-full rounded-full bg-primary text-surface flex items-center justify-center font-bold text-xs">
                                 {authUser.name?.charAt(0).toUpperCase()}
@@ -228,10 +228,10 @@ const WidgetHeader: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                             <User className="w-3.5 h-3.5" />
                         )}
                     </button>
-                    <button onClick={handleToggleFullscreen} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                    <button onClick={handleToggleFullscreen} className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white transition-colors">
                         {view === 'chat' ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
                     </button>
-                    <button onClick={onClose} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                    <button onClick={onClose} className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-text-primary dark:hover:text-white transition-colors">
                         <X className="w-3.5 h-3.5" />
                     </button>
                 </div>

@@ -105,6 +105,7 @@ interface Val8ContextType {
   disconnectChat: () => void;
   activeTripPlan: TripPlan | null;
   currentSuggestion: Suggestion | null;
+  clearCurrentSuggestion: () => void;
   streamingText: string; // Live streaming response text
   planItems: TripPlanItem[]; // Incremental plan items
   clearPlanItems: () => void;
@@ -596,6 +597,7 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({
         disconnectChat,
         activeTripPlan,
         currentSuggestion,
+        clearCurrentSuggestion: () => setCurrentSuggestion(null),
         streamingText,
         planItems,
         clearPlanItems: () => setPlanItems([]),

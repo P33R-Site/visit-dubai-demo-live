@@ -299,6 +299,7 @@ export const ChatInterface: React.FC = () => {
     hasReachedFullContext,
     activeTripPlan,
     currentSuggestion,
+    clearCurrentSuggestion,
   } = useVal8();
 
   const [inputValue, setInputValue] = useState('');
@@ -521,8 +522,8 @@ export const ChatInterface: React.FC = () => {
             <div className="flex-1">
               <SuggestionCard
                 suggestion={currentSuggestion}
-                onAccept={() => sendMessage('yes')}
-                onReject={() => sendMessage('no')}
+                onAccept={() => { clearCurrentSuggestion(); sendMessage('yes'); }}
+                onReject={() => { clearCurrentSuggestion(); sendMessage('no'); }}
               />
             </div>
           </div>
