@@ -8,12 +8,32 @@
 
     // Branding/Customization options (optional)
     const BRANDING = {
-        primaryColor: config.primaryColor || null, // e.g., '#D4AF37' or 'rgb(212, 175, 55)'
-        accentColor: config.accentColor || null,   // Secondary accent color
-        fontFamily: config.fontFamily || null,     // e.g., 'Roboto, sans-serif'
-        borderRadius: config.borderRadius || null, // e.g., '16px' or '24px'
-        widgetTitle: config.widgetTitle || 'Val8', // Widget header title
+        // 🎨 Colors
+        primaryColor: config.primaryColor || null,     // Main brand color (buttons, links)
+        accentColor: config.accentColor || null,       // Secondary accent color
+        headerBackground: config.headerBackground || null, // Header background color
+        surfaceColor: config.surfaceColor || null,     // Widget background color
+        textColor: config.textColor || null,           // Primary text color
+
+        // 🔤 Typography
+        fontFamily: config.fontFamily || null,         // e.g., 'Roboto, sans-serif'
+
+        // 📐 Layout & Position
+        borderRadius: config.borderRadius || null,     // Widget corner radius (e.g., '24px')
+        position: config.position || 'bottom-right',   // 'bottom-right' or 'bottom-left'
+        offsetX: config.offsetX || 24,                 // Horizontal offset (px)
+        offsetY: config.offsetY || 24,                 // Vertical offset (px)
+
+        // 📝 Text & Labels
+        widgetTitle: config.widgetTitle || 'Val8',     // Widget header title
+        subtitle: config.subtitle || 'AI Concierge',   // Header subtitle
         launcherText: config.launcherText || 'Speak to Nora', // Launcher button text
+        welcomeMessage: config.welcomeMessage || null, // Initial welcome message
+        inputPlaceholder: config.inputPlaceholder || 'Type your message...', // Input placeholder
+
+        // 🖼️ Avatar & Logo
+        avatarUrl: config.avatarUrl || 'https://api.dicebear.com/7.x/personas/svg?seed=Nora&backgroundColor=b6e3f4&hair=long&hairColor=2c1b18&eyes=happy&mouth=smile&nose=smallRound&skinColor=f5cfa0',
+        logoUrl: config.logoUrl || null,               // Custom logo URL for header
     };
 
     // Create Fonts (Inter and Playfair for the specific look)
@@ -22,13 +42,14 @@
     fontLink.rel = 'stylesheet';
     document.head.appendChild(fontLink);
 
-    // Create Styles
+    // Create Styles - dynamic based on position setting
+    const isLeftPosition = BRANDING.position === 'bottom-left';
     const style = document.createElement('style');
     style.innerHTML = `
         #${LAUNCHER_ID} {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: ${BRANDING.offsetY}px;
+            ${isLeftPosition ? 'left' : 'right'}: ${BRANDING.offsetX}px;
             background: #ffffff; /* Surface light */
             color: #1a1a1a;
             padding: 16px 24px;
@@ -40,7 +61,7 @@
             align-items: center;
             gap: 12px;
             transition: all 0.2s ease;
-            font-family: 'Inter', sans-serif;
+            font-family: ${BRANDING.fontFamily || "'Inter', sans-serif"};
             border: 1px solid rgba(0,0,0,0.1);
         }
         #${LAUNCHER_ID}:hover {
@@ -91,14 +112,14 @@
 
         #${IFRAME_ID} {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: ${BRANDING.offsetY}px;
+            ${isLeftPosition ? 'left' : 'right'}: ${BRANDING.offsetX}px;
             width: 800px;
             height: 700px;
             max-height: 85vh;
             max-width: calc(100vw - 48px);
             border: none;
-            border-radius: 24px;
+            border-radius: ${BRANDING.borderRadius || '24px'};
             z-index: 999998;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             opacity: 0;
@@ -144,10 +165,10 @@
     const launcher = document.createElement('div');
     launcher.id = LAUNCHER_ID;
 
-    // HTML Structure matching Val8Widget.tsx:
+    // HTML Structure with customizable avatar:
     launcher.innerHTML = `
         <div class="icon-box" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            <img src="https://api.dicebear.com/7.x/personas/svg?seed=Nora&backgroundColor=b6e3f4&hair=long&hairColor=2c1b18&eyes=happy&mouth=smile&nose=smallRound&skinColor=f5cfa0" alt="AI Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="${BRANDING.avatarUrl}" alt="AI Avatar" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         <span class="text">${BRANDING.launcherText}</span>
     `;
@@ -211,11 +232,28 @@
     function buildWidgetUrl(theme) {
         const params = new URLSearchParams();
         params.set('theme', theme);
+
+        // Colors
         if (BRANDING.primaryColor) params.set('primaryColor', BRANDING.primaryColor);
         if (BRANDING.accentColor) params.set('accentColor', BRANDING.accentColor);
-        if (BRANDING.widgetTitle) params.set('widgetTitle', BRANDING.widgetTitle);
+        if (BRANDING.headerBackground) params.set('headerBackground', BRANDING.headerBackground);
+        if (BRANDING.surfaceColor) params.set('surfaceColor', BRANDING.surfaceColor);
+        if (BRANDING.textColor) params.set('textColor', BRANDING.textColor);
+
+        // Typography & Layout
         if (BRANDING.fontFamily) params.set('fontFamily', BRANDING.fontFamily);
         if (BRANDING.borderRadius) params.set('borderRadius', BRANDING.borderRadius);
+
+        // Text & Labels
+        if (BRANDING.widgetTitle) params.set('widgetTitle', BRANDING.widgetTitle);
+        if (BRANDING.subtitle) params.set('subtitle', BRANDING.subtitle);
+        if (BRANDING.welcomeMessage) params.set('welcomeMessage', BRANDING.welcomeMessage);
+        if (BRANDING.inputPlaceholder) params.set('inputPlaceholder', BRANDING.inputPlaceholder);
+
+        // Avatar & Logo
+        if (BRANDING.avatarUrl) params.set('avatarUrl', BRANDING.avatarUrl);
+        if (BRANDING.logoUrl) params.set('logoUrl', BRANDING.logoUrl);
+
         return `${WIDGET_URL}?${params.toString()}`;
     }
 

@@ -319,11 +319,23 @@ const WidgetContent: React.FC = () => {
 
 // Branding customization interface
 interface BrandingConfig {
+    // Colors
     primaryColor?: string;
     accentColor?: string;
-    widgetTitle?: string;
+    headerBackground?: string;
+    surfaceColor?: string;
+    textColor?: string;
+    // Typography & Layout
     fontFamily?: string;
     borderRadius?: string;
+    // Text & Labels
+    widgetTitle?: string;
+    subtitle?: string;
+    welcomeMessage?: string;
+    inputPlaceholder?: string;
+    // Avatar & Logo
+    avatarUrl?: string;
+    logoUrl?: string;
 }
 
 // Main Page Export - with theme detection and branding customization
@@ -339,13 +351,18 @@ export default function WidgetPage() {
             setTheme(urlTheme);
         }
 
-        // Read branding config from URL
+        // Read all branding config from URL
         const brandingConfig: BrandingConfig = {};
-        if (urlParams.get('primaryColor')) brandingConfig.primaryColor = decodeURIComponent(urlParams.get('primaryColor')!);
-        if (urlParams.get('accentColor')) brandingConfig.accentColor = decodeURIComponent(urlParams.get('accentColor')!);
-        if (urlParams.get('widgetTitle')) brandingConfig.widgetTitle = decodeURIComponent(urlParams.get('widgetTitle')!);
-        if (urlParams.get('fontFamily')) brandingConfig.fontFamily = decodeURIComponent(urlParams.get('fontFamily')!);
-        if (urlParams.get('borderRadius')) brandingConfig.borderRadius = decodeURIComponent(urlParams.get('borderRadius')!);
+        const paramKeys = [
+            'primaryColor', 'accentColor', 'headerBackground', 'surfaceColor', 'textColor',
+            'fontFamily', 'borderRadius',
+            'widgetTitle', 'subtitle', 'welcomeMessage', 'inputPlaceholder',
+            'avatarUrl', 'logoUrl'
+        ];
+        paramKeys.forEach(key => {
+            const value = urlParams.get(key);
+            if (value) (brandingConfig as any)[key] = decodeURIComponent(value);
+        });
         setBranding(brandingConfig);
 
         // Listen for theme changes from parent website
@@ -369,13 +386,27 @@ export default function WidgetPage() {
 
         // Apply branding CSS custom properties
         const root = document.documentElement;
+
+        // Colors
         if (branding.primaryColor) {
             root.style.setProperty('--color-primary', branding.primaryColor);
-            root.style.setProperty('--color-primary-soft', `${branding.primaryColor}33`); // 20% opacity
+            root.style.setProperty('--color-primary-soft', `${branding.primaryColor}33`);
         }
         if (branding.accentColor) {
             root.style.setProperty('--color-accent', branding.accentColor);
         }
+        if (branding.headerBackground) {
+            root.style.setProperty('--color-header-bg', branding.headerBackground);
+        }
+        if (branding.surfaceColor) {
+            root.style.setProperty('--color-surface', branding.surfaceColor);
+            root.style.setProperty('--color-bg', branding.surfaceColor);
+        }
+        if (branding.textColor) {
+            root.style.setProperty('--color-text-primary', branding.textColor);
+        }
+
+        // Typography
         if (branding.fontFamily) {
             root.style.setProperty('--font-family-body', branding.fontFamily);
         }

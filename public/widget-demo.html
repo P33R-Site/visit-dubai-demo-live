@@ -352,65 +352,120 @@
             <pre><code><span class="comment">&lt;!-- Optional: Custom configuration --&gt;</span>
 &lt;script&gt;
   window.Val8Config = {
-    <span class="comment">// Widget URL (use this for custom deployments)</span>
-    widgetUrl: '<span class="highlight">https://visit-dubai-demo-live.vercel.app/widget</span>',
+    <span class="comment">// 🎨 Colors</span>
+    primaryColor: '<span class="highlight">#3B82F6</span>',       <span class="comment">// Main accent color</span>
+    accentColor: '<span class="highlight">#7C3AED</span>',        <span class="comment">// Secondary accent</span>
+    headerBackground: '<span class="highlight">#1F2937</span>',   <span class="comment">// Header background</span>
+    surfaceColor: '<span class="highlight">#111827</span>',      <span class="comment">// Widget background</span>
+    textColor: '<span class="highlight">#F9FAFB</span>',         <span class="comment">// Primary text color</span>
     
-    <span class="comment">// 🎨 Branding - Match your website colors</span>
-    primaryColor: '<span class="highlight">#D4AF37</span>',    <span class="comment">// Main accent color (buttons, links)</span>
-    accentColor: '<span class="highlight">#7C3AED</span>',     <span class="comment">// Secondary accent color</span>
+    <span class="comment">// � Position &amp; Layout</span>
+    position: '<span class="highlight">bottom-right</span>',      <span class="comment">// 'bottom-right' or 'bottom-left'</span>
+    offsetX: <span class="highlight">24</span>,                   <span class="comment">// Horizontal offset (px)</span>
+    offsetY: <span class="highlight">24</span>,                   <span class="comment">// Vertical offset (px)</span>
+    borderRadius: '<span class="highlight">24px</span>',         <span class="comment">// Widget corner radius</span>
     
     <span class="comment">// 🔤 Typography</span>
-    fontFamily: '<span class="highlight">Roboto, sans-serif</span>', <span class="comment">// Custom font</span>
+    fontFamily: '<span class="highlight">Inter, sans-serif</span>',
     
-    <span class="comment">// 📐 Layout</span>
-    borderRadius: '<span class="highlight">16px</span>',       <span class="comment">// Widget corner radius</span>
+    <span class="comment">// 📝 Text &amp; Labels</span>
+    widgetTitle: '<span class="highlight">Support</span>',        <span class="comment">// Header title</span>
+    subtitle: '<span class="highlight">AI Assistant</span>',      <span class="comment">// Header subtitle</span>
+    launcherText: '<span class="highlight">Need help?</span>',    <span class="comment">// Launcher button</span>
+    welcomeMessage: '<span class="highlight">Hi! How can I help?</span>',
+    inputPlaceholder: '<span class="highlight">Type here...</span>',
     
-    <span class="comment">// 📝 Labels</span>
-    widgetTitle: '<span class="highlight">Val8</span>',        <span class="comment">// Header title</span>
-    launcherText: '<span class="highlight">Speak to Nora</span>' <span class="comment">// Launcher button text</span>
+    <span class="comment">// 🖼️ Avatar &amp; Logo</span>
+    avatarUrl: '<span class="highlight">https://example.com/avatar.png</span>',
+    logoUrl: '<span class="highlight">https://example.com/logo.png</span>'
   };
 &lt;/script&gt;
 
 <span class="comment">&lt;!-- Load the widget --&gt;</span>
 &lt;script src="<span class="highlight">https://visit-dubai-demo-live.vercel.app/embed.js</span>"&gt;&lt;/script&gt;</code></pre>
 
-            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">Available Options</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0;">
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <th style="text-align: left; padding: 10px 0; color: #D4AF37;">Option</th>
-                    <th style="text-align: left; padding: 10px 0; color: #D4AF37;">Type</th>
-                    <th style="text-align: left; padding: 10px 0; color: #D4AF37;">Description</th>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">🎨 Color Options</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0;">
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>primaryColor</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Main brand color (buttons, links)</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 8px 0;"><code>primaryColor</code></td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Main brand color for buttons, links, and
-                        accents</td>
+                    <td style="padding: 6px 0;"><code>accentColor</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Secondary accent color</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 8px 0;"><code>accentColor</code></td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Secondary accent color</td>
+                    <td style="padding: 6px 0;"><code>headerBackground</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Header background color</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 8px 0;"><code>fontFamily</code></td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Custom font family (CSS format)</td>
+                    <td style="padding: 6px 0;"><code>surfaceColor</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Widget background color</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 8px 0;"><code>borderRadius</code></td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Widget corner radius (e.g., "16px")</td>
+                    <td style="padding: 6px 0;"><code>textColor</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Primary text color</td>
+                </tr>
+            </table>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">📐 Position & Layout</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0;">
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>position</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">'bottom-right' or 'bottom-left'</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 8px 0;"><code>widgetTitle</code></td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Widget header title text</td>
+                    <td style="padding: 6px 0;"><code>offsetX</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Horizontal offset (px)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>offsetY</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Vertical offset (px)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>borderRadius</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Widget corner radius</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>fontFamily</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Custom font family</td>
+                </tr>
+            </table>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">📝 Text & Labels</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0;">
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>widgetTitle</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Header title text</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>subtitle</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Header subtitle</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>launcherText</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Launcher button text</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>welcomeMessage</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Initial greeting message</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>inputPlaceholder</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Chat input placeholder</td>
+                </tr>
+            </table>
+
+            <h3 style="font-size: 14px; margin: 20px 0 12px; color: #D4AF37;">🖼️ Avatar & Branding</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0;">
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 6px 0;"><code>avatarUrl</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Custom avatar image URL</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px 0;"><code>launcherText</code></td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">string</td>
-                    <td style="padding: 8px 0; color: rgba(255,255,255,0.7);">Launcher button text</td>
+                    <td style="padding: 6px 0;"><code>logoUrl</code></td>
+                    <td style="padding: 6px 0; color: rgba(255,255,255,0.7);">Custom logo URL</td>
                 </tr>
             </table>
         </div>
