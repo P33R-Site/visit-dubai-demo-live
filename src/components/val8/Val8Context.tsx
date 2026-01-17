@@ -135,6 +135,7 @@ interface Val8ContextType {
 
   // Branding customization from embed config
   inputPlaceholder: string;
+  welcomeMessage: string | null;
 }
 
 const Val8Context = createContext<Val8ContextType | undefined>(undefined);
@@ -144,13 +145,15 @@ interface Val8ProviderProps {
   initialExpanded?: boolean;
   forceExpanded?: boolean; // Prevent collapse (for iframe embedding)
   inputPlaceholder?: string; // Custom input placeholder from branding
+  welcomeMessage?: string | null; // Custom welcome message from branding
 }
 
 export const Val8Provider: React.FC<Val8ProviderProps> = ({
   children,
   initialExpanded = false,
   forceExpanded = false,
-  inputPlaceholder = 'Type a message or use voice...'
+  inputPlaceholder = 'Type a message or use voice...',
+  welcomeMessage = null
 }) => {
   const { user: authUser } = useAuth();
 
@@ -631,6 +634,7 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({
         logout,
         // Branding customization
         inputPlaceholder,
+        welcomeMessage,
       }}
     >
       {children}

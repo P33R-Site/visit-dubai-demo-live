@@ -301,10 +301,24 @@ export const ChatInterface: React.FC = () => {
     currentSuggestion,
     clearCurrentSuggestion,
     inputPlaceholder,
+    welcomeMessage,
   } = useVal8();
 
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const welcomeMessageShown = useRef(false);
+
+  // Add welcome message to chat on mount if provided
+  useEffect(() => {
+    if (welcomeMessage && !welcomeMessageShown.current && chatHistory.length === 0) {
+      welcomeMessageShown.current = true;
+      addMessage({
+        sender: 'val8',
+        text: welcomeMessage,
+        type: 'text',
+      });
+    }
+  }, [welcomeMessage, chatHistory.length, addMessage]);
 
   // Audio chat hook with silence detection and auto-listen
   const {
