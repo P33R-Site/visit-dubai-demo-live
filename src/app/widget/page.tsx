@@ -210,7 +210,7 @@ const WidgetHeader: React.FC<{ onClose: () => void; widgetTitle?: string; subtit
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    {chatHistory.length > 0 && (
+                    {(authUser || chatHistory.length > 0) && (
                         <button onClick={startNewTrip} className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-text-muted dark:text-white/40 hover:text-primary hover:bg-primary/10 transition-colors" title="New Trip">
                             <Plus className="w-3.5 h-3.5" />
                         </button>

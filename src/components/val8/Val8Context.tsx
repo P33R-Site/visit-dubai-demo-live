@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useRef, ReactNode, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebSocketChat } from '@/hooks/useWebSocketChat';
 import { TripPlan, Suggestion, ChatResponse, TripPlanItem } from '@/lib/types';
@@ -178,9 +178,13 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({
   const [activeTripPlan, setActiveTripPlan] = useState<TripPlan | null>(null);
   const [currentSuggestion, setCurrentSuggestion] = useState<Suggestion | null>(null);
 
+
   // Pending trip plan from previous session - needs user confirmation to show
   const [pendingTripPlan, setPendingTripPlan] = useState<TripPlan | null>(null);
   const [tripPlanConfirmed, setTripPlanConfirmed] = useState(false);
+
+  // Flag to track when a new session was just started - prevents loading old pending trips
+  const isNewSessionRef = useRef(false);
 
   // AI approval tracking - true when AI confirms the trip is ready to book
   const [isTripApprovedByAI, setIsTripApprovedByAI] = useState(false);
@@ -319,6 +323,11 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({
           console.log('[Val8Context] Setting as active trip plan (active conversation)');
           setActiveTripPlan(tripPlan);
           setTripPlanConfirmed(true);
+          // Clear new session flag since user is now actively planning
+          isNewSessionRef.current = false;
+        } else if (isNewSessionRef.current) {
+          // New session just started - ignore old pending trips from backend
+          console.log('[Val8Context] Ignoring pending trip (new session started)');
         } else {
           // Trip from previous session - store as pending for user confirmation
           console.log('[Val8Context] Setting as pending trip plan (no active conversation)');
@@ -461,6 +470,8 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({
   // Session lifecycle: Start a completely new trip
   const startNewTrip = useCallback(() => {
     console.log('[Val8Context] Starting new trip - resetting all state');
+    // Set flag to prevent loading old pending trips after reconnect
+    isNewSessionRef.current = true;
     setChatHistory([]);
     setActiveTripPlan(null);
     setPendingTripPlan(null);
