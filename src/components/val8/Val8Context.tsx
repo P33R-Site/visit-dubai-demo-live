@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useWebSocketChat } from '@/hooks/useWebSocketChat';
 import { TripPlan, Suggestion, ChatResponse, TripPlanItem } from '@/lib/types';
 import { getTrip } from '@/lib/trip';
-import { getSessionId } from '@/lib/session';
+import { getSessionId, clearSessionId } from '@/lib/session';
 
 // Types for the context
 export type UserIntent = 'planning' | 'browsing' | 'booking' | null;
@@ -486,6 +486,8 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({
     setSelectedHotel(null);
     setTripContext({});
     setUserIntent(null);
+    // Clear the stored session ID to force a completely new session
+    clearSessionId();
     // Reconnect WebSocket to get fresh session - use longer delay to ensure clean disconnect
     disconnectChat();
     setTimeout(() => connectChat(), 300);
