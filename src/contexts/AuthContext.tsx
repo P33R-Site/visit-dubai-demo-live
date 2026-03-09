@@ -56,7 +56,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             try {
                 // On refresh, clear session so we treat it as a new conversation (same as plus button)
-                const navEntry = typeof window !== 'undefined' && performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined;
+                const navEntry =
+                    typeof window !== 'undefined'
+                        ? (performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined)
+                        : undefined;
                 if (navEntry?.type === 'reload') {
                     sessionService.clearSessionId();
                 }
