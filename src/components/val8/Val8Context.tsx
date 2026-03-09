@@ -404,6 +404,15 @@ export const Val8Provider: React.FC<Val8ProviderProps> = ({
     onConnectionChange: handleConnectionChange,
   });
 
+  // On page refresh, treat as new conversation (same as plus button) so we don't restore old session/trips
+  useEffect(() => {
+    const navEntry = typeof window !== 'undefined' && (performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined);
+    if (navEntry?.type === 'reload') {
+      console.log('[Val8Context] Page reload - treating as new conversation');
+      isNewSessionRef.current = true;
+    }
+  }, []);
+
   // Auto-connect when widget expands
   useEffect(() => {
     if (isExpanded && !isConnected) {

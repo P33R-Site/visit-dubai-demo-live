@@ -55,6 +55,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsLoading(true);
 
             try {
+                // On refresh, clear session so we treat it as a new conversation (same as plus button)
+                const navEntry = typeof window !== 'undefined' && performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined;
+                if (navEntry?.type === 'reload') {
+                    sessionService.clearSessionId();
+                }
+
                 // Check if we have stored tokens and try to get current user
                 if (hasStoredTokens()) {
                     try {
